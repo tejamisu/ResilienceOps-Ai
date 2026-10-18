@@ -1,0 +1,1129 @@
+{
+  "_note": "SIMULATED scenario for the ResilienceOps AI prototype. Figures match the app's Prepare, Respond and Recover screens. No real casualty data. Place names are real; events and numbers are illustrative.",
+  "event": {
+    "id": "WYN-2026-001",
+    "name": "Landslide & flash flood",
+    "district": "Wayanad",
+    "state": "Kerala",
+    "authority": "DDMA Wayanad",
+    "phases": {
+      "prepare": {
+        "day": 0,
+        "now": "06:20",
+        "label": "Before the storm · readiness plan"
+      },
+      "respond": {
+        "day": 0,
+        "now": "12:10",
+        "label": "During the event · rescue and dispatch"
+      },
+      "recover": {
+        "day": 2,
+        "now": "09:00",
+        "label": "After · relief, restoration, lessons"
+      }
+    },
+    "people": {
+      "ic": {
+        "name": "Ananya Menon",
+        "role": "Incident Commander",
+        "org": "DDMA Wayanad"
+      },
+      "analyst": {
+        "name": "Dr. Rahul Nair",
+        "role": "Hazard Analyst",
+        "org": "DEOC Wayanad"
+      },
+      "coord": {
+        "name": "Sreeja Thomas",
+        "role": "Relief & Recovery Coordinator",
+        "org": "DDMA Wayanad"
+      }
+    }
+  },
+  "forecast": {
+    "source": "IMD district forecast (simulated)",
+    "issued": "Day 0 · 06:00",
+    "alert": "Red",
+    "headline": "Extremely heavy rain in the next 24 hours",
+    "gauge": "Meppadi",
+    "rain_24h_mm": 234.6,
+    "landslide_watch_mm_h": 15,
+    "peak_window": [
+      "15:00",
+      "21:00"
+    ],
+    "confidence": "Medium–high",
+    "limitation": "Peak timing could shift by about 3 h",
+    "hourly_expected_mm_h": [
+      3,
+      3.5,
+      4,
+      5,
+      6,
+      7.5,
+      9,
+      11,
+      13,
+      15.5,
+      17,
+      17.5,
+      16.5,
+      14,
+      12,
+      10,
+      8.5,
+      7,
+      6,
+      5,
+      4.5,
+      4,
+      3.5,
+      3
+    ]
+  },
+  "places": [
+    {
+      "id": "meppadi",
+      "name": "Meppadi",
+      "sub": "Steep slopes · Vythiri taluk",
+      "ll": [
+        11.512,
+        76.146
+      ],
+      "hazard": "Landslide and flash flood",
+      "exposure": [
+        2000,
+        3500
+      ],
+      "households": [
+        620,
+        1050
+      ],
+      "heavy_rain_from": "15:00",
+      "window": [
+        "15:00",
+        "21:00"
+      ],
+      "alert": [
+        "IMD",
+        "Red alert",
+        "Extremely heavy rain, 234.6 mm in 24 h"
+      ],
+      "factors": [
+        {
+          "id": "rain",
+          "label": "Rainfall",
+          "short": "235 mm",
+          "value": "234.6 mm in 24 h",
+          "score": 0.95,
+          "src": "IMD forecast"
+        },
+        {
+          "id": "slope",
+          "label": "Slope",
+          "short": "over 30°",
+          "value": "over 30° above the road",
+          "score": 0.9,
+          "src": "KSDMA slope-risk layer"
+        },
+        {
+          "id": "history",
+          "label": "Past slides",
+          "short": "2019, 2024",
+          "value": "2019 Puthumala, 2024 Mundakkai",
+          "score": 0.95,
+          "src": "District hazard record"
+        },
+        {
+          "id": "road",
+          "label": "Access",
+          "short": "km 7 only",
+          "value": "the km 7 road is the only way in",
+          "score": 0.8,
+          "src": "PWD road register"
+        },
+        {
+          "id": "people",
+          "label": "Exposure",
+          "short": "line houses",
+          "value": "estate line houses",
+          "score": 0.7,
+          "src": "Census 2011 · panchayat lists"
+        }
+      ],
+      "capacity": [
+        [
+          "Water",
+          14,
+          48,
+          "h"
+        ],
+        [
+          "Rescue teams",
+          4,
+          6,
+          ""
+        ],
+        [
+          "Excavators",
+          2,
+          3,
+          ""
+        ]
+      ],
+      "unknowns": [
+        "No road-condition report from Chooralmala since 05:10",
+        "Rain gauge at Mundakkai offline since 04:30"
+      ],
+      "vulnerable": "Estate line houses; one road in; many daily-wage workers away from home in the day"
+    },
+    {
+      "id": "vythiri",
+      "name": "Vythiri",
+      "sub": "Flood plain · Vythiri taluk",
+      "ll": [
+        11.552,
+        76.04
+      ],
+      "hazard": "Dam-release flooding and ghat landslides",
+      "exposure": [
+        1200,
+        2000
+      ],
+      "households": [
+        380,
+        620
+      ],
+      "heavy_rain_from": "14:00",
+      "window": [
+        "14:00",
+        "20:00"
+      ],
+      "alert": [
+        "IMD + KSEB",
+        "Orange alert",
+        "Very heavy rain; Banasura Sagar at orange level"
+      ],
+      "factors": [
+        {
+          "id": "dam",
+          "label": "Dam release",
+          "short": "Day 0 PM",
+          "value": "shutters may open this afternoon",
+          "score": 0.85,
+          "src": "KSEB dam bulletin"
+        },
+        {
+          "id": "rain",
+          "label": "Rainfall",
+          "short": "150 mm",
+          "value": "150 mm in 24 h",
+          "score": 0.7,
+          "src": "IMD forecast"
+        },
+        {
+          "id": "history",
+          "label": "Past floods",
+          "short": "2018",
+          "value": "2018 Padinjarathara flood",
+          "score": 0.8,
+          "src": "District hazard record"
+        },
+        {
+          "id": "road",
+          "label": "Access",
+          "short": "NH 766 ghat",
+          "value": "NH 766 ghat, landslide-prone",
+          "score": 0.7,
+          "src": "PWD road register"
+        },
+        {
+          "id": "people",
+          "label": "Exposure",
+          "short": "bank homes",
+          "value": "riverbank homes, resorts",
+          "score": 0.55,
+          "src": "Panchayat lists"
+        }
+      ],
+      "capacity": [
+        [
+          "Camp places",
+          900,
+          2000,
+          ""
+        ],
+        [
+          "Rescue boats",
+          2,
+          4,
+          ""
+        ],
+        [
+          "Ghat road crews",
+          1,
+          2,
+          ""
+        ]
+      ],
+      "unknowns": [
+        "KSEB has not confirmed the shutter opening time",
+        "No traffic count for NH 766 tonight"
+      ],
+      "vulnerable": "Riverbank homes and resorts with tourists who don't know the area"
+    },
+    {
+      "id": "mananthavady",
+      "name": "Mananthavady",
+      "sub": "River banks · north Wayanad",
+      "ll": [
+        11.802,
+        76.004
+      ],
+      "hazard": "Riverine flooding on the Kabini",
+      "exposure": [
+        800,
+        1500
+      ],
+      "households": [
+        250,
+        470
+      ],
+      "heavy_rain_from": "16:00",
+      "window": [
+        "16:00",
+        "23:00"
+      ],
+      "alert": [
+        "IMD + CWC",
+        "Orange alert",
+        "Kabini rising"
+      ],
+      "factors": [
+        {
+          "id": "river",
+          "label": "River level",
+          "short": "near 2018",
+          "value": "rising, 1.2 m below the 2018 mark",
+          "score": 0.75,
+          "src": "CWC gauge"
+        },
+        {
+          "id": "rain",
+          "label": "Rainfall",
+          "short": "160 mm",
+          "value": "160 mm in 24 h",
+          "score": 0.72,
+          "src": "IMD forecast"
+        },
+        {
+          "id": "history",
+          "label": "Past floods",
+          "short": "2018",
+          "value": "2018: bank homes affected",
+          "score": 0.85,
+          "src": "District hazard record"
+        },
+        {
+          "id": "health",
+          "label": "Hospital",
+          "short": "near river",
+          "value": "medical college near the river",
+          "score": 0.65,
+          "src": "Health dept"
+        },
+        {
+          "id": "people",
+          "label": "Exposure",
+          "short": "bank hamlets",
+          "value": "tribal hamlets on the bank",
+          "score": 0.6,
+          "src": "ITDP lists"
+        }
+      ],
+      "capacity": [
+        [
+          "Camp places",
+          700,
+          1500,
+          ""
+        ],
+        [
+          "Rescue boats",
+          1,
+          3,
+          ""
+        ],
+        [
+          "Ambulances",
+          4,
+          6,
+          ""
+        ]
+      ],
+      "unknowns": [
+        "Camp generator fuel not confirmed (Taluk office)",
+        "Kabini reservoir (Karnataka) release plan not shared",
+        "Bank-erosion survey is from 2023"
+      ],
+      "vulnerable": "Tribal hamlets on the riverbank; patients at the medical college"
+    },
+    {
+      "id": "kalpetta",
+      "name": "Kalpetta",
+      "sub": "Hill roads · district HQ",
+      "ll": [
+        11.6085,
+        76.083
+      ],
+      "hazard": "Road-cut landslides near the DEOC",
+      "exposure": [
+        300,
+        600
+      ],
+      "households": [
+        90,
+        190
+      ],
+      "heavy_rain_from": "17:00",
+      "window": [
+        "17:00",
+        "22:00"
+      ],
+      "alert": [
+        "IMD",
+        "Orange alert",
+        "Heavy to very heavy rain"
+      ],
+      "factors": [
+        {
+          "id": "rain",
+          "label": "Rainfall",
+          "short": "120 mm",
+          "value": "120 mm in 24 h",
+          "score": 0.55,
+          "src": "IMD forecast"
+        },
+        {
+          "id": "slope",
+          "label": "Slope",
+          "short": "fresh cuts",
+          "value": "fresh cuts at the tunnel works",
+          "score": 0.6,
+          "src": "PWD"
+        },
+        {
+          "id": "history",
+          "label": "Past floods",
+          "short": "2018",
+          "value": "2018 floods hit Kalpetta",
+          "score": 0.5,
+          "src": "District hazard record"
+        },
+        {
+          "id": "road",
+          "label": "Access",
+          "short": "to Meppadi",
+          "value": "carries all traffic to Meppadi",
+          "score": 0.7,
+          "src": "PWD road register"
+        },
+        {
+          "id": "people",
+          "label": "Exposure",
+          "short": "DEOC, offices",
+          "value": "few homes, key offices",
+          "score": 0.35,
+          "src": "Panchayat lists"
+        }
+      ],
+      "capacity": [
+        [
+          "DEOC backup power",
+          48,
+          72,
+          "h"
+        ],
+        [
+          "Road crews",
+          2,
+          2,
+          ""
+        ],
+        [
+          "Camp places",
+          400,
+          600,
+          ""
+        ]
+      ],
+      "unknowns": [
+        "Slope survey at the tunnel works is out of date"
+      ],
+      "vulnerable": "Few homes; the DEOC and district offices that run the response"
+    }
+  ],
+  "readiness_tasks": [
+    {
+      "id": "t1",
+      "place": "meppadi",
+      "g": "now",
+      "short": "Road check",
+      "title": "Inspect the Meppadi–Chooralmala road and slope at km 7",
+      "owner": "PWD Meppadi",
+      "due": "09:00",
+      "resources": "Inspection crew of 4, drone if available",
+      "proof": "Photo + road status in the app"
+    },
+    {
+      "id": "t2",
+      "place": "meppadi",
+      "g": "now",
+      "short": "Rescue",
+      "title": "Put Rescue Unit 2 on standby at Meppadi",
+      "owner": "Fire & Rescue",
+      "due": "10:00",
+      "resources": "FR-02 with landslide kit",
+      "proof": "Check-in at Meppadi staging point"
+    },
+    {
+      "id": "t3",
+      "place": "meppadi",
+      "g": "now",
+      "short": "Camp water",
+      "title": "Ready Meppadi camp for 450 people with 48 h of water",
+      "owner": "Relief cell",
+      "due": "12:00",
+      "resources": "2,000 L water, 450 bedding sets",
+      "proof": "Camp manager confirmation"
+    },
+    {
+      "id": "t4",
+      "place": "meppadi",
+      "g": "next",
+      "short": "Excavator",
+      "title": "Stage Excavator 3 at Meppadi junction",
+      "owner": "PWD",
+      "due": "12:00",
+      "resources": "JCB-03 + operator",
+      "proof": "Check-in at junction"
+    },
+    {
+      "id": "t5",
+      "place": "meppadi",
+      "g": "next",
+      "short": "Ambulance",
+      "title": "Ambulance on standby at WIMS, Meppadi",
+      "owner": "Health",
+      "due": "12:00",
+      "resources": "Ambulance 108-04",
+      "proof": "Check-in at WIMS"
+    }
+  ],
+  "at_risk": [
+    {
+      "title": "Mananthavady camp generator — fuel not confirmed",
+      "owner": "Taluk office",
+      "due": "10:00"
+    }
+  ],
+  "capacity": [
+    {
+      "id": "water",
+      "label": "Water",
+      "have": 14,
+      "need": 48,
+      "unit": "h",
+      "fix": "task:t3"
+    },
+    {
+      "id": "rescue",
+      "label": "Rescue teams",
+      "have": 4,
+      "need": 6,
+      "unit": "",
+      "fix": "request:ksdma"
+    },
+    {
+      "id": "exc",
+      "label": "Excavators",
+      "have": 2,
+      "need": 3,
+      "unit": "",
+      "fix": "request:pwd"
+    },
+    {
+      "id": "beds",
+      "label": "Camp beds",
+      "have": 1800,
+      "need": 2400,
+      "unit": "",
+      "fix": "request:beds"
+    },
+    {
+      "id": "amb",
+      "label": "Ambulances",
+      "have": 5,
+      "need": 5,
+      "unit": ""
+    }
+  ],
+  "teams": [
+    {
+      "id": "fr2",
+      "name": "Rescue Unit 2",
+      "agency": "Fire & Rescue",
+      "base": "Kalpetta station",
+      "ll": [
+        11.585,
+        76.104
+      ],
+      "staged_ll": [
+        11.557,
+        76.131
+      ],
+      "kit": [
+        "landslide rescue kit",
+        "rope rescue"
+      ],
+      "status": "standby",
+      "plate": "KL 12 G 4471"
+    },
+    {
+      "id": "fr4",
+      "name": "Rescue Unit 4",
+      "agency": "Fire & Rescue",
+      "base": "Mananthavady station",
+      "ll": [
+        11.8,
+        76.0
+      ],
+      "kit": [
+        "water rescue"
+      ],
+      "status": "available",
+      "plate": "KL 12 G 4475"
+    },
+    {
+      "id": "jcb3",
+      "name": "Excavator 3",
+      "agency": "PWD",
+      "base": "Meppadi junction",
+      "ll": [
+        11.6005,
+        76.0905
+      ],
+      "kit": [
+        "debris clearing"
+      ],
+      "status": "en_route",
+      "plate": "KL 12 AB 7302"
+    },
+    {
+      "id": "amb",
+      "name": "Ambulance 108-04",
+      "agency": "Health",
+      "base": "WIMS hospital",
+      "ll": [
+        11.566,
+        76.118
+      ],
+      "kit": [
+        "ALS"
+      ],
+      "status": "on_site",
+      "plate": "KL 12 M 1084"
+    },
+    {
+      "id": "rt1",
+      "name": "Relief Truck 1",
+      "agency": "Relief cell",
+      "base": "Kalpetta depot",
+      "ll": [
+        11.603,
+        76.09
+      ],
+      "kit": [
+        "water 2,000 L"
+      ],
+      "status": "delayed",
+      "plate": "KL 12 K 5590"
+    },
+    {
+      "id": "sdrf",
+      "name": "SDRF team",
+      "agency": "KSDMA",
+      "base": "Kalpetta (on request)",
+      "ll": [
+        11.6085,
+        76.083
+      ],
+      "kit": [
+        "landslide rescue kit",
+        "search dogs"
+      ],
+      "status": "on_request"
+    }
+  ],
+  "routes": [
+    {
+      "id": "A",
+      "name": "Route A · Meppadi–Chooralmala road",
+      "status": "blocked",
+      "note": "Debris across the road at km 7",
+      "minutes_from_meppadi": 9,
+      "verified": "Day 0 · 12:04 (photo)"
+    },
+    {
+      "id": "C",
+      "name": "Route C · forest track",
+      "status": "passable",
+      "note": "High-clearance vehicles only",
+      "minutes_from_meppadi": 11,
+      "verified": "Ward officer, not yet verified (18 min ago)"
+    },
+    {
+      "id": "NH766",
+      "name": "NH 766 near Vythiri",
+      "status": "slowed",
+      "note": "Water on the road; traffic slowed, not closed",
+      "minutes_from_meppadi": null,
+      "verified": "Ward officer + gauge"
+    }
+  ],
+  "incoming_reports": [
+    {
+      "id": "r1",
+      "t": "12:02",
+      "source": "Resident voice note (Malayalam) with photo",
+      "kind": "community",
+      "trust": "medium",
+      "text_ml_summary": "Voice note in Malayalam: the hillside came down onto the road near km 7; houses beyond it cannot get out.",
+      "location": "km 7, Meppadi–Chooralmala road",
+      "photo": true
+    },
+    {
+      "id": "r2",
+      "t": "12:03",
+      "source": "Ward officer, Chooralmala (call)",
+      "kind": "official",
+      "trust": "high",
+      "text": "Debris across the road at km 7. About 10–18 households in ward 11 may be cut off.",
+      "location": "Chooralmala ward 11"
+    },
+    {
+      "id": "r3",
+      "t": "12:04",
+      "source": "Police control room",
+      "kind": "official",
+      "trust": "high",
+      "text": "Road closed at km 7, traffic held at Meppadi.",
+      "location": "km 7"
+    },
+    {
+      "id": "r4",
+      "t": "11:58",
+      "source": "Rain gauge, Meppadi",
+      "kind": "sensor",
+      "trust": "high",
+      "text": "Rainfall above 15 mm/h for 40 minutes.",
+      "location": "Meppadi"
+    },
+    {
+      "id": "r5",
+      "t": "11:58",
+      "source": "Camp manager, Meppadi camp",
+      "kind": "official",
+      "trust": "high",
+      "text": "Drinking water runs out in under 6 h. 412 people in camp; the second tanker is late.",
+      "location": "Meppadi camp"
+    },
+    {
+      "id": "r6",
+      "t": "11:45",
+      "source": "Ward officer, Vythiri + river gauge",
+      "kind": "official",
+      "trust": "high",
+      "text": "Water on NH 766 near Vythiri; flooding started about 3 h earlier than forecast. Traffic slowed, not closed.",
+      "location": "Vythiri"
+    }
+  ],
+  "camps": [
+    {
+      "name": "Kalpetta",
+      "people": 318,
+      "pct": 64
+    },
+    {
+      "name": "Meppadi",
+      "people": 412,
+      "pct": 87,
+      "water_hours": 6
+    },
+    {
+      "name": "Vythiri",
+      "people": 205,
+      "pct": 71
+    },
+    {
+      "name": "Chundale",
+      "people": 176,
+      "pct": 52
+    },
+    {
+      "name": "Mananthavady",
+      "people": 173,
+      "pct": 48
+    }
+  ],
+  "ground_truth": [
+    {
+      "place": "vythiri",
+      "forecast_onset": "14:00",
+      "observed_onset": "11:00",
+      "delta_h": -3,
+      "evidence": "River gauge above warning · ward officer: water on NH 766, traffic slowed, not closed"
+    },
+    {
+      "place": "meppadi",
+      "forecast_onset": "15:00",
+      "observed_onset": "12:02",
+      "delta_h": -3,
+      "evidence": "Landslide at km 7 at 12:02, inside the forecast critical zone"
+    }
+  ],
+  "communities": [
+    {
+      "id": "chooralmala",
+      "name": "Chooralmala",
+      "sub": "Ward 11 · Meppadi panchayat",
+      "in_need": 860,
+      "estimate": false,
+      "coverage_pct": 31,
+      "by": "Ward officer · 08:10",
+      "needs": {
+        "water": "gap",
+        "food": "gap",
+        "medicine": "part",
+        "shelter": "ok",
+        "power": "gap",
+        "road": "part"
+      },
+      "figures": {
+        "water": "6k L/day short",
+        "food": "450 meals short",
+        "medicine": "Partly stocked",
+        "shelter": "In Meppadi camp",
+        "power": "Out · Day 3",
+        "road": "km 7 restricted"
+      },
+      "signals": {
+        "hours_since_verified_water": 10,
+        "reports_since_day0": 3,
+        "share_of_reports_pct": 5,
+        "share_of_need_pct": 40,
+        "phone_tower": "down since Day 0",
+        "households": 140,
+        "elderly": "many"
+      }
+    },
+    {
+      "id": "meppadi",
+      "name": "Meppadi",
+      "sub": "Panchayat · camp of 412",
+      "in_need": 640,
+      "estimate": false,
+      "coverage_pct": 68,
+      "by": "Camp manager · 08:30",
+      "needs": {
+        "water": "part",
+        "food": "ok",
+        "medicine": "ok",
+        "shelter": "part",
+        "power": "gap",
+        "road": "ok"
+      },
+      "figures": {
+        "water": "8k L/day short",
+        "food": "Met",
+        "medicine": "Met",
+        "shelter": "87% full",
+        "power": "Out · Day 3",
+        "road": "Open"
+      },
+      "signals": {
+        "hours_since_verified_water": 1,
+        "reports_since_day0": 41,
+        "share_of_reports_pct": 38,
+        "share_of_need_pct": 30
+      }
+    },
+    {
+      "id": "pozhuthana",
+      "name": "Pozhuthana",
+      "sub": "Panchayat · hill settlements",
+      "in_need": 520,
+      "estimate": true,
+      "coverage_pct": null,
+      "by": "~520 estimated from census",
+      "needs": {
+        "water": "unk",
+        "food": "unk",
+        "medicine": "unk",
+        "shelter": "unk",
+        "power": "unk",
+        "road": "unk"
+      },
+      "figures": {},
+      "signals": {
+        "reports_since_day0": 0,
+        "households_assessed": [
+          0,
+          50
+        ]
+      }
+    },
+    {
+      "id": "vythiri",
+      "name": "Vythiri",
+      "sub": "Panchayat · NH 766",
+      "in_need": 120,
+      "estimate": false,
+      "coverage_pct": 93,
+      "by": "Panchayat team · 07:45",
+      "needs": {
+        "water": "ok",
+        "food": "ok",
+        "medicine": "ok",
+        "shelter": "ok",
+        "power": "part",
+        "road": "ok"
+      },
+      "figures": {
+        "power": "Partial"
+      },
+      "signals": {
+        "reports_since_day0": 30
+      }
+    }
+  ],
+  "need_gaps": [
+    {
+      "id": "water-meppadi",
+      "title": "Meppadi camp: drinking water",
+      "need": "18,000 L/day",
+      "verified": "10,000",
+      "gap": "8,000 L/day",
+      "by": "Camp manager, 08:30"
+    },
+    {
+      "id": "meals-chooralmala",
+      "title": "Chooralmala: meal packs",
+      "need": "900/day",
+      "verified": "450",
+      "gap": "450/day",
+      "by": "Ward officer, 08:10"
+    }
+  ],
+  "restoration": [
+    {
+      "item": "Meppadi power feeder",
+      "status": "out",
+      "eta": "Day 3, 18:00",
+      "owner": "KSEB"
+    },
+    {
+      "item": "Chooralmala telecom tower",
+      "status": "down",
+      "eta": "no estimate",
+      "owner": "Operator"
+    },
+    {
+      "item": "Road at km 7",
+      "status": "restricted",
+      "eta": "open Day 3 (projected)",
+      "owner": "PWD"
+    }
+  ],
+  "impact": {
+    "households_assessed": [
+      420,
+      530
+    ],
+    "by_panchayat": [
+      [
+        "Meppadi",
+        205,
+        240
+      ],
+      [
+        "Vythiri",
+        115,
+        120
+      ],
+      [
+        "Chooralmala",
+        100,
+        120,
+        "Phone tower down; ward officer visiting"
+      ],
+      [
+        "Pozhuthana",
+        0,
+        50,
+        "Hill settlements, not reached yet"
+      ]
+    ],
+    "missing_open": [
+      3,
+      5
+    ],
+    "in_camps": [
+      1284,
+      1450
+    ],
+    "injuries_treated": 7,
+    "sources": {
+      "missing": "Police register, 08:30",
+      "camps": "Camp registry, 08:40",
+      "injuries": "Health dept",
+      "households": "Panchayat assessment forms"
+    },
+    "rule": "No fatality figures are shown. Counts are verified unless marked estimated."
+  },
+  "plan_vs_actual": [
+    {
+      "id": "l1",
+      "title": "Camp water ran out",
+      "at": "Meppadi camp",
+      "planned": "48 h",
+      "actual": "14 h",
+      "gap": "34 h short of plan",
+      "owner": "Relief cell",
+      "lesson": "48 h water stock at every camp before monsoon"
+    },
+    {
+      "id": "l2",
+      "title": "Route C took the traffic",
+      "at": "Day 0",
+      "planned": "0 h (unverified alternate)",
+      "actual": "9 h",
+      "gap": "Unverified for 9 h",
+      "owner": "PWD",
+      "lesson": "Add Route C to the playbook as a formal alternate"
+    },
+    {
+      "id": "l3",
+      "title": "Chooralmala went quiet",
+      "at": "Ward 11",
+      "planned": "40% share of need",
+      "actual": "5% of reports",
+      "gap": "8× under-reported",
+      "owner": "DEOC",
+      "lesson": "Proactive ward check when a tower goes down"
+    }
+  ],
+  "history": [
+    {
+      "year": 2018,
+      "event": "Kerala floods",
+      "places": [
+        "vythiri",
+        "mananthavady",
+        "kalpetta"
+      ],
+      "lesson": "Riverbank homes on the Kabini and Panamaram need early evacuation"
+    },
+    {
+      "year": 2019,
+      "event": "Puthumala landslide",
+      "places": [
+        "meppadi"
+      ],
+      "lesson": "Slopes above 30° near Meppadi fail in sustained rain above 15 mm/h"
+    },
+    {
+      "year": 2024,
+      "event": "Mundakkai–Chooralmala landslide",
+      "places": [
+        "meppadi"
+      ],
+      "lesson": "The km 7 road is the only way in; stage rescue before peak rain"
+    }
+  ],
+  "place_tasks": [
+    {
+      "id": "V1",
+      "place": "vythiri",
+      "title": "Warn households on the Panamaram riverbanks",
+      "owner": "Village officer, Vythiri",
+      "due": "07:30",
+      "status": "done"
+    },
+    {
+      "id": "V2",
+      "place": "vythiri",
+      "title": "Open relief camp at GHSS Vythiri",
+      "owner": "Panchayat secretary",
+      "due": "08:00",
+      "status": "done"
+    },
+    {
+      "id": "V3",
+      "place": "vythiri",
+      "title": "Get the Banasura release schedule from KSEB",
+      "owner": "DEOC liaison",
+      "due": "09:00",
+      "status": "awaiting"
+    },
+    {
+      "id": "V4",
+      "place": "vythiri",
+      "title": "Stage a crane and tow truck at Lakkidi",
+      "owner": "Motor Vehicles Dept",
+      "due": "10:00",
+      "status": "awaiting"
+    },
+    {
+      "id": "N1",
+      "place": "mananthavady",
+      "title": "Ready GVHSS Mananthavady as a relief camp",
+      "owner": "Tahsildar, Mananthavady",
+      "due": "08:30",
+      "status": "done"
+    },
+    {
+      "id": "N2",
+      "place": "mananthavady",
+      "title": "Station a boat team at Payyampally",
+      "owner": "Fire & Rescue, Mananthavady",
+      "due": "10:00",
+      "status": "awaiting"
+    },
+    {
+      "id": "N3",
+      "place": "mananthavady",
+      "title": "Move ground-floor patients up at the medical college",
+      "owner": "Superintendent, GMC Wayanad",
+      "due": "11:00",
+      "status": "awaiting"
+    },
+    {
+      "id": "K1",
+      "place": "kalpetta",
+      "title": "Inspect cut slopes on the Kalpetta–Meppadi road",
+      "owner": "PWD Roads",
+      "due": "11:00",
+      "status": "awaiting"
+    },
+    {
+      "id": "K2",
+      "place": "kalpetta",
+      "title": "Fuel the DEOC backup generator for 72 h",
+      "owner": "Collectorate admin",
+      "due": "12:00",
+      "status": "awaiting"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "source": "Central Water Commission — FloodWatch India (SIMULATED DATA — NOT REAL)",
+  "issued_at": "2025-07-14T06:30:00+05:30",
+  "advisory_id": "CWC-FW-2025-07-14-003",
+  "district": "Metro District",
+  "water_bodies": [
+    {
+      "name": "Metro Seasonal Canal (Urban Drainage)",
+      "type": "urban_drainage_channel",
+      "current_level_m": 4.1,
+      "danger_level_m": 4.5,
+      "warning_level_m": 3.8,
+      "normal_level_m": 2.5,
+      "status": "WARNING",
+      "trend": "RISING_FAST",
+      "rate_of_rise_m_per_hour": 0.18,
+      "time_to_danger_level_hrs": 2.2,
+      "wards_at_risk": ["W12", "W19"],
+      "remarks": "Rising rapidly. Danger level may be breached in approximately 2 hours if rainfall continues."
+    },
+    {
+      "name": "Northern Wetland Drain",
+      "type": "stormwater_drain",
+      "current_level_m": 3.8,
+      "danger_level_m": 3.9,
+      "warning_level_m": 3.5,
+      "normal_level_m": 2.0,
+      "status": "DANGER",
+      "trend": "RISING",
+      "rate_of_rise_m_per_hour": 0.12,
+      "time_to_danger_level_hrs": 0.8,
+      "wards_at_risk": ["W19"],
+      "remarks": "Near danger level. Overflow risk for Ward 19 very high."
+    }
+  ],
+  "district_flood_advisory": "WATCH",
+  "confidence_level": "HIGH",
+  "data_quality": "OFFICIAL",
+  "next_update": "2025-07-14T09:30:00+05:30"
+}

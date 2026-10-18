@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community card options</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page:#111413; --rail:#161918; --card:#1e2221; --card-hi:#252a28;
+    --hair:rgba(255,255,255,.07); --hair-2:rgba(255,255,255,.12);
+    --ink:#f2f4f2; --ink-2:#b9c0bb; --ink-3:#8a928d;
+    --critical:#ff6b5f; --warning:#f0a04b; --ok:#7bd88f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--page); color: var(--ink); font-family: Outfit, system-ui, sans-serif; -webkit-font-smoothing: antialiased; padding: 36px 40px 48px; }
+  h1 { font-size: 26px; font-weight: 300; }
+  .intro { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+  .board { display: grid; grid-template-columns: repeat(3, 436px); gap: 36px; margin-top: 28px; }
+  .opt h2 { font-size: 17px; font-weight: 400; }
+  .opt p.d { font-size: 13px; color: var(--ink-2); margin: 4px 0 14px; line-height: 1.45; min-height: 57px; }
+  .rail { background: var(--rail); border-radius: 22px; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .c { position: relative; background: var(--card); border: 1px solid var(--hair); border-radius: 26px; padding: 16px 16px 14px; height: 236px; display: flex; flex-direction: column; overflow: hidden; }
+  .c.sel { background: radial-gradient(120% 90% at 0% 0%, #6f7a70 0%, #343b37 38%, var(--card) 72%); border-color: var(--hair-2); }
+  .c .nm { font-size: 17px; font-weight: 400; display: flex; justify-content: space-between; }
+  .c .nm span { font-size: 16px; font-weight: 300; }
+  .c .sb { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .crit { color: var(--critical); } .warn { color: var(--warning); } .ok { color: var(--ok); } .mute { color: var(--ink-2); }
+  .num { font-weight: 200; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .num small { font-size: 15px; font-weight: 300; color: var(--ink-2); margin-left: 2px; letter-spacing: 0; }
+  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+  .st svg { width: 13px; height: 13px; }
+  .foot { margin-top: auto; font-size: 11.5px; color: var(--ink-2); }
+  .why { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin-top: 14px; }
+  .why b { color: var(--ink); font-weight: 400; }
+
+  /* ---- A · segmented gauge strip (refs 8, 9) ---- */
+  .gs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-top: 12px; }
+  .gs i { height: 6px; border-radius: 3px; background: rgba(255,255,255,.28); }
+  .gs i.g { background: var(--critical); } .gs i.p { background: var(--warning); } .gs i.m { background: rgba(255,255,255,.75); }
+  .gs i.u { background: repeating-linear-gradient(135deg, #5a615c 0 2px, #2a2f2d 2px 4px); }
+  .gl { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-top: 5px; font-size: 10.5px; font-style: italic; color: var(--ink-2); text-align: center; }
+  .gl span.g { color: var(--critical); } .gl span.p { color: var(--warning); }
+  .tk { height: 6px; margin-top: 3px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 1px, transparent 1px 5px); }
+
+  /* ---- B · exceptions only ---- */
+  .ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .ex .chip { height: 28px; padding: 0 10px 0 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; border: 1px solid currentColor; }
+  .ex .chip svg { width: 15px; height: 15px; }
+  .ex .chip.g { color: var(--critical); background: rgba(255,107,95,.08); }
+  .ex .chip.p { color: var(--warning); border-style: dashed; }
+  .ex .rest { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 4px; height: 28px; }
+
+  /* ---- C · line-art need row (refs 3, 5, 6) ---- */
+  .ic { display: flex; justify-content: space-between; margin-top: 14px; }
+  .ic svg { width: 26px; height: 26px; fill: none; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+  .ic .m { stroke: var(--ink); opacity: .32; }
+  .ic .g { stroke: var(--critical); }
+  .ic .g .fill { fill: var(--critical); fill-opacity: .35; stroke: none; }
+  .ic .p { stroke: var(--warning); }
+  .ic .p .fill { fill: var(--warning); fill-opacity: .35; stroke: none; }
+  .ic .u { stroke: var(--ink-2); stroke-dasharray: 2 2.2; opacity: .8; }
+  .cap { margin-top: 10px; font-size: 12.5px; line-height: 1.35; }
+  .legend { display: flex; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .rec { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--ink); color: #141716; font-weight: 500; vertical-align: 2px; }
+</style>
+</head>
+<body>
+  <h1>Community cards · three directions</h1>
+  <p class="intro">Same data, default (pre-demo) state. Each answers "Is this place OK? If not, what's missing?" before anything else.</p>
+
+  <div class="board">
+    <!-- ================= A ================= -->
+    <section class="opt">
+      <h2>A · Need gauge</h2>
+      <p class="d">The phone damage gauge (refs 8–9), reused as a need gauge: six fixed segments (water → road) with a tick ruler. A large thin split numeral gives coverage.</p>
+      <div class="rail" id="optA"></div>
+      <p class="why"><b>Good:</b> very on-style and compact; status is a single shape. <b>Watch:</b> the reader must learn the segment order (W F M S P R), which is a small legend to memorise under stress.</p>
+    </section>
+
+    <!-- ================= B ================= -->
+    <section class="opt">
+      <h2>B · Only what's missing</h2>
+      <p class="d">Management by exception. Big coverage number, then chips only for unmet needs: red solid = gap, amber dashed = partly. Met needs fold into "+n met".</p>
+      <div class="rail" id="optB"></div>
+      <p class="why"><b>Good:</b> fastest to read; zero decoding, every word is a need. <b>Watch:</b> least visual of the three; the cards look different from each other because chip counts vary.</p>
+    </section>
+
+    <!-- ================= C ================= -->
+    <section class="opt">
+      <h2>C · Line-art needs <span class="rec">Recommended</span></h2>
+      <p class="d">Six line-art icons in a fixed row (the wireframe language of refs 3, 5, 6). Met needs fade back. Gaps light up red with a tinted fill, partly in amber with a half fill. One plain line names what's missing.</p>
+      <div class="rail" id="optC"></div>
+      <div class="legend"><span><i style="background:var(--critical)"></i>Gap</span><span><i style="background:var(--warning)"></i>Partly</span><span><i style="background:rgba(242,244,242,.32)"></i>Met</span><span><i style="background:repeating-linear-gradient(135deg,#8a928d 0 2px,transparent 2px 4px)"></i>Unknown</span></div>
+      <p class="why"><b>Good:</b> icons are recognised before words; red items pop out of a quiet row, so you see the gap pattern across all four cards at once. <b>Watch:</b> icons need accessible names and a hover label.</p>
+    </section>
+  </div>
+
+<script>
+  // simulated data, default state
+  const NEEDS = ['Water', 'Food', 'Medicine', 'Shelter', 'Power', 'Road'];
+  const C = [
+    { n: 'Chooralmala', s: 'Ward 11 · Meppadi', st: 'gap', cov: 31, need: '860', by: 'Ward officer · 08:10', v: ['g','g','p','m','g','p'], sel: true },
+    { n: 'Meppadi', s: 'Panchayat · camp of 412', st: 'part', cov: 68, need: '640', by: 'Camp manager · 08:30', v: ['p','m','m','p','g','m'] },
+    { n: 'Pozhuthana', s: 'Hill settlements', st: 'unk', cov: null, need: '~520', by: 'No assessment yet', v: ['u','u','u','u','u','u'] },
+    { n: 'Vythiri', s: 'Panchayat · NH 766', st: 'ok', cov: 93, need: '120', by: 'Panchayat team · 07:45', v: ['m','m','m','m','p','m'] }
+  ];
+  const ST = {
+    gap: ['crit', 'Unserved', '<svg viewBox="0 0 24 24"><path d="M12 3 22.5 20.5h-21z" fill="currentColor"/><path d="M12 10v4.5" stroke="#1b0f0e" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="#1b0f0e"/></svg>'],
+    part: ['warn', 'Partly served', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>'],
+    ok: ['ok', 'Served', '<svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'],
+    unk: ['mute', 'Not assessed', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.8 9.8a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .7-1 1.3v.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1.1" fill="currentColor"/></svg>']
+  };
+  // line-art need icons; .fill paths are the tint for gap / partly
+  const ICON = {
+    Water: ['<path class="fill" d="M6.2 15h11.6a6 6 0 0 1-11.6 0z"/>', '<path class="fill" d="M6.6 17h10.8a6 6 0 0 1-10.8 0z"/>', '<path d="M12 3c3 4.5 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 3-6.5 6-11z"/>'],
+    Food: ['<path class="fill" d="M4 11h16a8 8 0 0 1-16 0z"/>', '<path class="fill" d="M5.2 15h13.6a8 8 0 0 1-13.6 0z"/>', '<path d="M4 11h16a8 8 0 0 1-16 0zM9 8c0-1.6 1-2 1-3.6M13.5 8c0-1.6 1-2 1-3.6"/>'],
+    Medicine: ['<rect class="fill" x="4" y="4" width="16" height="16" rx="4"/>', '<path class="fill" d="M4 12h16v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/>', '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>'],
+    Shelter: ['<path class="fill" d="M3 20 12 5l9 15z"/>', '<path class="fill" d="M6.6 14h10.8L21 20H3z"/>', '<path d="M3 20 12 5l9 15zM9.5 20 12 15.5l2.5 4.5"/>'],
+    Power: ['<path class="fill" d="M13 3 5 14h6l-1 7 8-11h-6z"/>', '<path class="fill" d="M8.6 9h9.4L10 21l1-7H5z"/>', '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>'],
+    Road: ['<path class="fill" d="M8 3h8l3 18H5z"/>', '<path class="fill" d="M6.5 12h11l1.5 9H5z"/>', '<path d="M8 3 5 21M16 3l3 18M12 5v2.5M12 11v2.5M12 17v2.5"/>']
+  };
+  const icon = (n, v) => {
+    const [gf, pf, line] = ICON[n];
+    return `<svg viewBox="0 0 24 24" class="${v}" role="img" aria-label="${n}: ${({g:'gap',p:'partly met',m:'met',u:'unknown'})[v]}">${v === 'g' ? gf : v === 'p' ? pf : ''}${line}</svg>`;
+  };
+  const head = c => `<p class="nm">${c.n}<span aria-hidden="true">↗</span></p><p class="sb">${c.s}</p>`;
+  const pct = c => c.cov == null ? `<span class="num mute" style="font-size:34px">—</span>` : `<span class="num" style="font-size:34px">${c.cov}<small>%</small></span>`;
+  const status = c => { const [cl, w, g] = ST[c.st]; return `<span class="st ${cl}">${g}${w}</span>`; };
+  const names = (c, k) => c.v.map((v, i) => v === k ? NEEDS[i] : null).filter(Boolean);
+  const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+  // A
+  document.getElementById('optA').innerHTML = C.map(c => `<article class="c${c.sel ? ' sel' : ''}">${head(c)}
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px">${pct(c)}<span style="text-align:right">${status(c)}<br><span style="font-size:12px;color:var(--ink-2)">${c.need} in need</span></span></div>
+    <div class="gs">${c.v.map(v => `<i class="${v}"></i>`).join('')}</div><div class="tk"></div>
+    <div class="gl">${c.v.map((v, i) => `<span class="${v}">${NEEDS[i][0]}</span>`).join('')}</div>
+    <p class="foot">${c.by}</p></article>`).join('');
+
+  // B
+  const BI = n => ICON[n][2].replace(/class="fill"[^>]*>/g, '');
+  document.getElementById('optB').innerHTML = C.map(c => {
+    const g = names(c, 'g'), p = names(c, 'p'), m = names(c, 'm').length;
+    const chips = c.st === 'unk'
+      ? `<span class="chip" style="color:var(--ink-2);border-style:dotted">Needs an assessment</span>`
+      : g.map(n => `<span class="chip g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${BI(n)}</svg>${n}</span>`).join('')
+        + p.map(n => `<span class="chip p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${BI(n)}</svg>${n}</span>`).join('')
+        + (m ? `<span class="rest"><span class="ok">✓</span> +${m} met</span>` : '');
+    return `<article class="c${c.sel ? ' sel' : ''}">${head(c)}
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px">${pct(c)}<span style="text-align:right">${status(c)}<br><span style="font-size:12px;color:var(--ink-2)">${c.need} in need</span></span></div>
+      <div class="ex">${chips}</div><p class="foot">${c.by}</p></article>`;
+  }).join('');
+
+  // C
+  document.getElementById('optC').innerHTML = C.map(c => {
+    const g = names(c, 'g'), p = names(c, 'p');
+    const cap = c.st === 'unk' ? `<span class="mute">Unknown: no one has assessed it yet</span>`
+      : g.length ? `<span class="crit">No ${list(g).toLowerCase()}</span>${p.length ? `<br><span class="warn">Partly: ${list(p).toLowerCase()}</span>` : ''}`
+      : p.length ? `<span class="warn">Partly: ${list(p).toLowerCase()}</span><br><span class="mute">Everything else met</span>` : `<span class="ok">All needs met</span>`;
+    return `<article class="c${c.sel ? ' sel' : ''}">${head(c)}
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px">${pct(c)}<span style="text-align:right">${status(c)}<br><span style="font-size:12px;color:var(--ink-2)">${c.need} in need</span></span></div>
+      <div class="ic">${c.v.map((v, i) => icon(NEEDS[i], v)).join('')}</div>
+      <p class="cap">${cap}</p><p class="foot">${c.by}</p></article>`;
+  }).join('');
+</script>
+</body>
+</html>

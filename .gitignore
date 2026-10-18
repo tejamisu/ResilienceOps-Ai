@@ -1,0 +1,20 @@
+.env
+**/.env
+.venv/
+**/venv/
+__pycache__/
+*.pyc
+backend/runs/*.json
+backend/web/
+*.zip
+.claude/
+.DS_Store
+references/
+skills-lock.json
+test-run/_*
+google-cloud-sdk/
+google-cloud-cli-*
+
+# working screenshots and personal notes (not part of the product)
+test-run/*.png
+submission/YOUR-CHECKLIST.md

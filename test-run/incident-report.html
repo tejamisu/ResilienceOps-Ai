@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident Report Details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #c9cbc9;
+    --screen-top: #2b3531;
+    --screen-bottom: #3a423e;
+    --glass: rgba(70, 80, 75, 0.62);
+    --glass-strong: rgba(78, 88, 83, 0.72);
+    --hairline: rgba(255, 255, 255, 0.08);
+    --ink: #f4f6f4;
+    --ink-2: #d0d6d2;      /* secondary text  ≥ 4.5:1 on glass */
+    --ink-3: #b0b8b3;      /* dimmed numerals ≥ 3:1 (large text only) */
+    --track: rgba(255, 255, 255, 0.30);
+    --critical: #ff7d71;
+    --white-seg: #f4f6f4;
+    --focus: #ffffff;
+    --radius-lg: 30px;
+    --radius-pill: 999px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+    background: radial-gradient(120% 80% at 50% 0%, #e2e3e1 0%, var(--page) 60%, #b7bab7 100%);
+    font-family: "Outfit", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- device ---------- */
+  .device {
+    width: 390px;
+    max-width: 100%;
+    height: 844px;
+    border-radius: 56px;
+    padding: 12px;
+    background: #0d0f0e;
+    box-shadow:
+      0 0 0 2px #262a28,
+      0 40px 80px -20px rgba(0, 0, 0, 0.45),
+      0 18px 36px -18px rgba(0, 0, 0, 0.5);
+  }
+  .screen {
+    position: relative;
+    height: 100%;
+    border-radius: 44px;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--screen-top) 0%, var(--screen-bottom) 100%);
+    isolation: isolate;
+  }
+
+  /* blurred terrain map peeking through the glass */
+  .map {
+    position: absolute;
+    inset: -40px;
+    z-index: -1;
+    filter: blur(28px) saturate(0.9);
+    background:
+      radial-gradient(38% 22% at 30% 6%, #3f6a3a 0%, transparent 70%),
+      radial-gradient(30% 18% at 78% 10%, #2f5636 0%, transparent 70%),
+      radial-gradient(40% 20% at 60% 26%, #4a5f4a 0%, transparent 75%),
+      radial-gradient(50% 30% at 10% 60%, #3d4c44 0%, transparent 75%),
+      radial-gradient(40% 25% at 95% 70%, #47604c 0%, transparent 75%),
+      radial-gradient(60% 30% at 50% 100%, #39443f 0%, transparent 80%);
+  }
+
+  /* ---------- status bar ---------- */
+  .status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 30px 0;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .status .island {
+    width: 120px; height: 34px; border-radius: 20px; background: #050605;
+  }
+  .status .sys { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px 0;
+  }
+  .logo { width: 44px; height: 44px; display: grid; place-items: center; margin-right: auto; }
+  .logo svg { width: 34px; height: 34px; }
+
+  .glass-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    min-width: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-pill);
+    background: var(--glass);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    color: var(--ink);
+    font: 400 17px/1 "Outfit", sans-serif;
+    cursor: pointer;
+    transition: background-color .2s ease;
+  }
+  .glass-btn:hover { background: var(--glass-strong); }
+  .glass-btn.icon { padding: 0; width: 48px; position: relative; }
+  .glass-btn svg { width: 20px; height: 20px; flex: none; }
+  .badge {
+    position: absolute;
+    top: 6px; right: 7px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--critical);
+    box-shadow: 0 0 0 2px var(--screen-top), 0 0 12px rgba(255, 125, 113, .7);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  /* ---------- sheet ---------- */
+  .sheet {
+    margin: 22px 8px 0;
+    padding: 24px 12px 20px;
+    border-radius: 36px;
+    background: rgba(58, 67, 63, 0.78);
+    border: 1px solid var(--hairline);
+    backdrop-filter: blur(24px) saturate(1.15);
+    -webkit-backdrop-filter: blur(24px) saturate(1.15);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .sheet-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0 8px 0 10px;
+  }
+  .sheet-head h1 {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+  }
+  .sheet-head p {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+  .close {
+    width: 44px; height: 44px;
+    margin: -8px -8px 0 0;
+    display: grid; place-items: center;
+    border: 0; border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .close svg { width: 22px; height: 22px; }
+
+  /* ---------- cards ---------- */
+  .card {
+    position: relative;
+    margin-top: 14px;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--hairline);
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .card + .card { margin-top: 12px; }
+
+  .address {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 68px;
+    padding: 0 8px 0 20px;
+    border-radius: 34px;
+    margin-top: 22px;
+  }
+  .address span {
+    flex: 1;
+    white-space: nowrap;
+    font-size: 15.5px;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+  }
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border: 0; border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color .2s ease;
+  }
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.08); }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  .card-body { padding: 22px 18px 22px 20px; }
+  .card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title h2 {
+    font-size: 21px;
+    font-weight: 300;
+    letter-spacing: 0.002em;
+  }
+  .card-title .icon-btn { margin: -10px -10px -10px 0; }
+
+  /* damage gauge */
+  .damage {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .gauge { position: relative; padding-top: 22px; }
+  .gauge-labels {
+    position: absolute;
+    inset: 0 0 auto 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-2);
+  }
+  .gauge-labels .r { transform: translateY(6px); }
+
+  .bar {
+    position: relative;
+    height: 6px;
+    margin-top: 10px;
+    border-radius: 3px;
+    background: var(--track);
+  }
+  .seg { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+  .seg.red { background: var(--critical); box-shadow: 0 0 10px rgba(255, 125, 113, .35); }
+  .seg.white { background: var(--white-seg); border-radius: 1px; }
+  .seg.dark { background: #161a18; width: 2px; top: -1px; bottom: -1px; border-radius: 1px; }
+
+  .ticks {
+    position: relative;
+    height: 10px;
+    margin-top: 8px;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.38) 0 1px, transparent 1px 6px);
+    background-size: 100% 6px;
+    background-repeat: no-repeat;
+    background-position: 0 2px;
+  }
+  .ticks i {
+    position: absolute;
+    top: 4px;
+    height: 2px;
+    border-radius: 1px;
+  }
+  .ticks i.red { background: var(--critical); }
+  .ticks i.white { background: var(--white-seg); top: 5px; }
+
+  .readout { text-align: right; padding-bottom: 2px; }
+  .value {
+    display: inline-flex;
+    align-items: baseline;
+    font-weight: 200;
+    font-size: 46px;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .value .dim { color: var(--ink-3); }
+  .value .unit {
+    font-size: 18px;
+    font-weight: 400;
+    margin-left: 4px;
+    color: var(--ink-2);
+    letter-spacing: 0;
+  }
+  .readout .caption {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* telemetry */
+  .telemetry { margin-top: 18px; display: grid; gap: 14px; }
+  .telemetry div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .telemetry dt { font-size: 15px; font-weight: 400; color: var(--ink-2); }
+  .telemetry dd { font-size: 16px; font-weight: 400; letter-spacing: 0.01em; text-align: right; }
+
+  .home-indicator {
+    position: absolute;
+    left: 50%; bottom: 8px;
+    width: 134px; height: 5px;
+    transform: translateX(-50%);
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <main class="screen" aria-labelledby="sheet-title">
+    <div class="map" aria-hidden="true"></div>
+
+    <div class="status" aria-hidden="true">
+      <span>9:41</span>
+      <span class="island"></span>
+      <span class="sys">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0"/><path d="M4 7a6 6 0 0 1 8 0"/><circle cx="8" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/><rect x="23.5" y="4" width="1.8" height="4" rx=".9" fill="currentColor" opacity=".45"/></svg>
+      </span>
+    </div>
+
+    <header class="topbar">
+      <a class="logo" href="#" aria-label="Home">
+        <svg viewBox="0 0 34 34" fill="#f4f6f4" aria-hidden="true">
+          <rect x="6" y="2" width="3.4" height="17" rx="1.7" transform="rotate(22 7.7 10.5)"/>
+          <rect x="13" y="2" width="3.4" height="22" rx="1.7" transform="rotate(22 14.7 13)"/>
+          <rect x="20" y="4" width="3.4" height="22" rx="1.7" transform="rotate(22 21.7 15)"/>
+          <rect x="27" y="9" width="3.4" height="15" rx="1.7" transform="rotate(22 28.7 16.5)"/>
+          <circle cx="5" cy="27" r="1.8"/>
+          <circle cx="11" cy="31" r="1.8"/>
+          <circle cx="24" cy="31" r="1.8"/>
+        </svg>
+      </a>
+
+      <button class="glass-btn" type="button" aria-haspopup="listbox" aria-label="Vehicle type: Bus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="2.5" width="14" height="17" rx="3"/><path d="M5 10h14"/><path d="M9 5.5h6"/><circle cx="8.5" cy="15" r=".9" fill="currentColor"/><circle cx="15.5" cy="15" r=".9" fill="currentColor"/><path d="M7.5 19.5v2M16.5 19.5v2"/>
+        </svg>
+        Bus
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <button class="glass-btn icon" type="button" aria-label="Notifications, 1 unread">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 16V10a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>
+        </svg>
+        <span class="badge" aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <section class="sheet" aria-labelledby="sheet-title">
+      <div class="sheet-head">
+        <div>
+          <h1 id="sheet-title">Incident Report Details</h1>
+          <p>Bus 4120</p>
+        </div>
+        <button class="close" type="button" aria-label="Close incident report">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+        </button>
+      </div>
+
+      <div class="card address">
+        <span id="addr">15 Park Row, New York, NY 10038</span>
+        <button class="icon-btn" type="button" aria-label="Copy address" data-copy="15 Park Row, New York, NY 10038">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+            <rect x="8.5" y="8.5" width="12" height="12" rx="3.5"/><path d="M15.5 8.5V7a3.5 3.5 0 0 0-3.5-3.5H7A3.5 3.5 0 0 0 3.5 7v5A3.5 3.5 0 0 0 7 15.5h1.5"/>
+          </svg>
+        </button>
+        <span class="sr-only" role="status" aria-live="polite" id="copy-status"></span>
+      </div>
+
+      <article class="card" aria-labelledby="damage-title">
+        <div class="card-body">
+          <div class="card-title">
+            <h2 id="damage-title">Details of the damage</h2>
+            <a class="icon-btn" href="#" aria-label="Open full damage details">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>
+            </a>
+          </div>
+
+          <div class="damage">
+            <div class="gauge" role="img" aria-label="Damage distribution from left to right side of the vehicle. Heavy damage concentrated on the left side; minor damage on the right.">
+              <div class="gauge-labels" aria-hidden="true"><span>Left</span><span class="r">Right</span></div>
+              <div class="bar" aria-hidden="true">
+                <span class="seg red" style="left:2%;width:34%"></span>
+                <span class="seg red" style="left:40%;width:3%"></span>
+                <span class="seg dark" style="left:50%"></span>
+                <span class="seg white" style="left:65%;width:5%"></span>
+                <span class="seg white" style="left:74%;width:11%"></span>
+                <span class="seg white" style="left:90%;width:1.2%"></span>
+              </div>
+              <div class="ticks" aria-hidden="true">
+                <i class="red" style="left:0;width:16%"></i>
+                <i class="red" style="left:28%;width:13%"></i>
+                <i class="white" style="left:63%;width:4%"></i>
+                <i class="white" style="left:88%;width:2%"></i>
+                <i class="white" style="left:94%;width:3.5%"></i>
+              </div>
+            </div>
+
+            <div class="readout">
+              <p class="value">
+                <span aria-hidden="true">73</span><span aria-hidden="true">.</span><span class="dim" aria-hidden="true">3</span><span class="unit" aria-hidden="true">%</span>
+              <span class="sr-only">73.3 percent</span></p>
+              <p class="caption">Critical Left Side</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" aria-labelledby="telemetry-title">
+        <div class="card-body">
+          <div class="card-title">
+            <h2 id="telemetry-title">Vehicle Telemetry</h2>
+            <a class="icon-btn" href="#" aria-label="Open full vehicle telemetry">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>
+            </a>
+          </div>
+          <dl class="telemetry">
+            <div><dt>Vehicle ID</dt><dd>BUS-4120-NY</dd></div>
+            <div><dt>Active Fault Codes</dt><dd>None</dd></div>
+            <div><dt>Last Service Interval</dt><dd>3,432 Km</dd></div>
+          </dl>
+        </div>
+      </article>
+    </section>
+
+    <div class="home-indicator" aria-hidden="true"></div>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const status = document.getElementById('copy-status');
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy);
+        status.textContent = 'Address copied';
+      } catch (e) {
+        status.textContent = 'Copy unavailable';
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResilienceOps AI — Emergency Operations Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Martian+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #050C16;
+      --surf:    #090F1A;
+      --surf2:   #0D1522;
+      --divider: rgba(100,140,200,0.10);
+      --text:    #C4D4E8;
+      --muted:   #4E6A8A;
+      --dim:     #243448;
+      --p1:      #3B82F6;
+      --p2:      #F97316;
+      --p3:      #10B981;
+      --sec:     #EF4444;
+      --cloud:   #8B5CF6;
+      --ext:     #526078;
+      --amber:   #F59E0B;
+      --critical:#EF4444;
+      --medium:  #F97316;
+      --low:     #10B981;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Martian Mono', 'Courier New', monospace;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: start;
+      padding: 28px 48px 24px;
+      border-bottom: 1px solid var(--divider);
+      position: relative;
+    }
+
+    .sys-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .status-pip {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--p3);
+      animation: pip 2.4s ease-in-out infinite;
+    }
+    @keyframes pip {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.35; }
+    }
+    .status-label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--p3);
+      font-family: 'Martian Mono', monospace;
+    }
+    .status-sep { color: var(--dim); font-size: 9px; }
+    .system-id {
+      font-size: 9px; letter-spacing: 0.12em;
+      color: var(--muted); font-family: 'Martian Mono', monospace;
+    }
+
+    h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 42px; font-weight: 800;
+      letter-spacing: -0.01em; line-height: 1;
+      color: #DDEEFF;
+      margin-bottom: 6px;
+    }
+    .sub {
+      font-size: 9px; font-weight: 400;
+      letter-spacing: 0.08em; color: var(--muted);
+      font-family: 'Martian Mono', monospace;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .meta-chips {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .chip {
+      padding: 3px 8px;
+      border: 1px solid var(--divider);
+      border-radius: 3px;
+      font-size: 8.5px; font-weight: 400;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted);
+      font-family: 'Martian Mono', monospace;
+    }
+    .chip-phase {
+      border-color: rgba(59,130,246,0.25);
+      color: var(--p1); background: rgba(59,130,246,0.06);
+    }
+    .chip-resp { border-color: rgba(249,115,22,0.25); color: var(--p2); background: rgba(249,115,22,0.06); }
+    .chip-rec  { border-color: rgba(16,185,129,0.25); color: var(--p3); background: rgba(16,185,129,0.06); }
+    .chip-gate { border-color: rgba(239,68,68,0.25);  color: var(--sec); background: rgba(239,68,68,0.06); }
+
+    /* Ward risk panel (right side of header) */
+    .risk-panel {
+      min-width: 260px;
+    }
+    .risk-label {
+      font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--divider);
+    }
+    .ward-row {
+      display: grid;
+      grid-template-columns: 36px 72px 1fr 36px;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(100,140,200,0.06);
+    }
+    .ward-id {
+      font-size: 11px; font-weight: 500; color: var(--text);
+      letter-spacing: 0.05em;
+    }
+    .ward-status {
+      font-size: 8px; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .w-critical { color: var(--critical); }
+    .w-medium   { color: var(--medium); }
+    .w-low      { color: var(--low); }
+    .ward-bar {
+      height: 3px; background: var(--dim); border-radius: 2px; overflow: hidden;
+    }
+    .ward-bar-fill {
+      height: 100%; border-radius: 2px;
+      transition: width 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .ward-score {
+      font-size: 9px; font-weight: 500; text-align: right;
+      color: var(--text); font-variant-numeric: tabular-nums;
+    }
+
+    /* ── DIAGRAM ────────────────────────────── */
+    .diagram-section {
+      border-bottom: 1px solid var(--divider);
+    }
+    .diagram-scroll {
+      overflow-x: auto; overflow-y: hidden;
+      padding: 20px 48px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(100,140,200,0.12) transparent;
+    }
+    .diagram-scroll::-webkit-scrollbar { height: 3px; }
+    .diagram-scroll::-webkit-scrollbar-thumb { background: rgba(100,140,200,0.12); border-radius: 2px; }
+    .diagram-scroll svg { display: block; }
+
+    /* Connection draw-on animation */
+    .conn {
+      stroke-dasharray: 2000;
+      stroke-dashoffset: 2000;
+    }
+    @keyframes draw-path {
+      to { stroke-dashoffset: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .conn { stroke-dasharray: none; stroke-dashoffset: 0; animation: none !important; }
+    }
+
+    /* ── PHASE PANELS ───────────────────────── */
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--divider);
+      border-top: 1px solid var(--divider);
+    }
+    .phase-panel {
+      background: var(--surf);
+      padding: 20px 20px;
+    }
+    .pp-head {
+      display: flex; align-items: baseline;
+      gap: 10px; margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .pp-phase-id {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 800;
+      line-height: 1; letter-spacing: -0.01em;
+      opacity: 0.25;
+    }
+    .pp-phase-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      line-height: 1;
+    }
+    .pp-agents { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .pp-agent { display: flex; flex-direction: column; gap: 2px; }
+    .pp-agent-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .p0-badge {
+      font-size: 8px; font-weight: 700;
+      background: var(--amber); color: #050C16;
+      padding: 1px 5px; border-radius: 2px;
+      letter-spacing: 0.08em; font-family: 'Martian Mono', monospace;
+      vertical-align: middle;
+    }
+    .pp-agent-role {
+      font-size: 9px; color: var(--muted);
+      font-family: 'Martian Mono', monospace;
+      line-height: 1.4; letter-spacing: 0.02em;
+    }
+    .pp-finding {
+      font-size: 8.5px; font-family: 'Martian Mono', monospace;
+      color: var(--muted); letter-spacing: 0.04em;
+      padding-top: 10px; border-top: 1px solid var(--divider);
+      line-height: 1.45;
+    }
+
+    /* ── FOOTER ─────────────────────────────── */
+    .footer {
+      padding: 12px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid var(--divider);
+    }
+    .footer-txt {
+      font-size: 8px; color: var(--dim);
+      font-family: 'Martian Mono', monospace;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .header { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
+      .risk-panel { min-width: auto; }
+      .diagram-scroll { padding: 16px 20px; }
+      .phase-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer { padding: 12px 20px; }
+      h1 { font-size: 34px; }
+    }
+    @media (max-width: 560px) {
+      .phase-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-left">
+    <div class="sys-status">
+      <span class="status-pip"></span>
+      <span class="status-label">System Operational</span>
+      <span class="status-sep">&nbsp;·&nbsp;</span>
+      <span class="system-id">RESILIENCE-OPS/AI v1.0 &nbsp;·&nbsp; EOC-ACTIVE</span>
+    </div>
+    <h1>RESILIENCEOPS AI</h1>
+    <p class="sub">Multi-Agent Urban Flood Coordination Platform &nbsp;·&nbsp; Google ADK &nbsp;·&nbsp; Gemini 3.8 Flash</p>
+    <div class="meta-chips">
+      <span class="chip chip-phase">Phase 1 &middot; Forecast &amp; Prepare</span>
+      <span class="chip chip-resp">Phase 2 &middot; Live Response</span>
+      <span class="chip chip-rec">Phase 3 &middot; Recover &amp; Improve</span>
+      <span class="chip chip-gate">2 Human Approval Gates</span>
+      <span class="chip">9 AI Agents</span>
+      <span class="chip">Hack2Skill 2024</span>
+    </div>
+  </div>
+
+  <div class="risk-panel">
+    <div class="risk-label">Sentinel Risk Assessment &nbsp;&middot;&nbsp; Live Output</div>
+    <div class="ward-row">
+      <span class="ward-id">W19</span>
+      <span class="ward-status w-critical">Critical</span>
+      <div class="ward-bar"><div class="ward-bar-fill" style="width:80.4%;background:#EF4444"></div></div>
+      <span class="ward-score">0.804</span>
+    </div>
+    <div class="ward-row">
+      <span class="ward-id">W12</span>
+      <span class="ward-status w-critical">Critical</span>
+      <div class="ward-bar"><div class="ward-bar-fill" style="width:78.3%;background:#EF4444"></div></div>
+      <span class="ward-score">0.783</span>
+    </div>
+    <div class="ward-row">
+      <span class="ward-id">W07</span>
+      <span class="ward-status w-medium">Medium</span>
+      <div class="ward-bar"><div class="ward-bar-fill" style="width:44.7%;background:#F97316"></div></div>
+      <span class="ward-score">0.447</span>
+    </div>
+    <div class="ward-row">
+      <span class="ward-id">W04</span>
+      <span class="ward-status w-low">Low</span>
+      <div class="ward-bar"><div class="ward-bar-fill" style="width:27.1%;background:#10B981"></div></div>
+      <span class="ward-score">0.271</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ DIAGRAM ══════════════════════════════════════════════════════ -->
+<section class="diagram-section">
+  <div class="diagram-scroll">
+    <svg
+      viewBox="0 0 1680 560"
+      width="1680" height="560"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="ResilienceOps AI System Architecture — 9 agents across 3 phases with human approval gates">
+
+      <defs>
+        <!-- Topographic contour pattern — references flood terrain maps -->
+        <pattern id="topo" width="160" height="100" patternUnits="userSpaceOnUse">
+          <path d="M-20,50 Q20,14 60,50 Q100,86 140,50 Q180,14 200,50" fill="none" stroke="rgba(80,130,200,0.055)" stroke-width="0.7"/>
+          <path d="M-20,72 Q20,36 60,72 Q100,108 140,72 Q180,36 200,72" fill="none" stroke="rgba(80,130,200,0.035)" stroke-width="0.7"/>
+          <path d="M-20,28 Q20,-8 60,28 Q100,64 140,28 Q180,-8 200,28" fill="none" stroke="rgba(80,130,200,0.035)" stroke-width="0.7"/>
+        </pattern>
+
+        <!-- Arrowheads -->
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,2 L9,5 L0,8 Z" fill="rgba(100,150,210,0.30)"/>
+        </marker>
+        <marker id="ar-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,2 L9,5 L0,8 Z" fill="#F59E0B"/>
+        </marker>
+        <marker id="ar-p1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,2 L9,5 L0,8 Z" fill="#3B82F6"/>
+        </marker>
+        <marker id="ar-p3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,2 L9,5 L0,8 Z" fill="#10B981"/>
+        </marker>
+        <marker id="ar-sec" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,2 L9,5 L0,8 Z" fill="#EF4444"/>
+        </marker>
+
+        <!-- Node inner glow (phase-colored left edge light) -->
+        <filter id="f-p1" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="-2" dy="0" stdDeviation="4" flood-color="#3B82F6" flood-opacity="0.25"/>
+        </filter>
+        <filter id="f-p2" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="-2" dy="0" stdDeviation="4" flood-color="#F97316" flood-opacity="0.25"/>
+        </filter>
+        <filter id="f-p3" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="-2" dy="0" stdDeviation="4" flood-color="#10B981" flood-opacity="0.25"/>
+        </filter>
+        <filter id="f-amber" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#F59E0B" flood-opacity="0.45"/>
+        </filter>
+        <filter id="f-cloud" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="-2" dy="0" stdDeviation="4" flood-color="#8B5CF6" flood-opacity="0.28"/>
+        </filter>
+        <filter id="f-sec" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="-2" dy="0" stdDeviation="4" flood-color="#EF4444" flood-opacity="0.20"/>
+        </filter>
+      </defs>
+
+      <!-- Topographic ground -->
+      <rect width="1680" height="560" fill="var(--bg, #050C16)"/>
+      <rect width="1680" height="560" fill="url(#topo)"/>
+
+      <!-- ════ PHASE REGIONS ════ -->
+
+      <!-- Phase 1 region -->
+      <rect x="238" y="87" width="204" height="375" rx="6"
+            fill="rgba(59,130,246,0.025)" stroke="rgba(59,130,246,0.22)" stroke-width="1" stroke-dasharray="6 4"/>
+      <!-- Large ghosted phase number -->
+      <text x="394" y="170" font-size="80" fill="rgba(59,130,246,0.05)"
+            font-family="Barlow Condensed, sans-serif" font-weight="800" text-anchor="end">P1</text>
+      <!-- Phase label -->
+      <rect x="244" y="71" width="188" height="17" rx="2" fill="rgba(59,130,246,0.12)"/>
+      <text x="250" y="82.5" font-size="8.5" fill="#3B82F6" font-family="Martian Mono,monospace"
+            font-weight="400" letter-spacing="0.10em">PHASE 1 — FORECAST &amp; PREPARE</text>
+
+      <!-- Phase 2 region -->
+      <rect x="818" y="87" width="194" height="455" rx="6"
+            fill="rgba(249,115,22,0.025)" stroke="rgba(249,115,22,0.22)" stroke-width="1" stroke-dasharray="6 4"/>
+      <text x="994" y="250" font-size="80" fill="rgba(249,115,22,0.05)"
+            font-family="Barlow Condensed, sans-serif" font-weight="800" text-anchor="end">P2</text>
+      <rect x="824" y="71" width="152" height="17" rx="2" fill="rgba(249,115,22,0.12)"/>
+      <text x="830" y="82.5" font-size="8.5" fill="#F97316" font-family="Martian Mono,monospace"
+            font-weight="400" letter-spacing="0.10em">PHASE 2 — LIVE RESPONSE</text>
+
+      <!-- Phase 3 region -->
+      <rect x="1398" y="237" width="219" height="235" rx="6"
+            fill="rgba(16,185,129,0.025)" stroke="rgba(16,185,129,0.22)" stroke-width="1" stroke-dasharray="6 4"/>
+      <text x="1590" y="310" font-size="80" fill="rgba(16,185,129,0.05)"
+            font-family="Barlow Condensed, sans-serif" font-weight="800" text-anchor="end">P3</text>
+      <rect x="1404" y="221" width="185" height="17" rx="2" fill="rgba(16,185,129,0.12)"/>
+      <text x="1410" y="232.5" font-size="8.5" fill="#10B981" font-family="Martian Mono,monospace"
+            font-weight="400" letter-spacing="0.10em">PHASE 3 — RECOVER &amp; IMPROVE</text>
+
+      <!-- ════ CONNECTIONS (draw-on via JS) ════ -->
+
+      <!-- 1. hist_db → risk_memory -->
+      <path class="conn" id="c-hist-rm" d="M170,138 H260"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 2. imd → sentinel (RED ALERT — amber) -->
+      <path class="conn" id="c-imd-sent" d="M170,268 H260"
+            stroke="#F59E0B" stroke-width="2" fill="none" marker-end="url(#ar-amber)"/>
+      <rect x="178" y="254" width="62" height="14" rx="2" fill="rgba(245,158,11,0.12)"/>
+      <text x="209" y="264.5" font-size="7" fill="#F59E0B" font-family="Martian Mono,monospace"
+            font-weight="500" text-anchor="middle" letter-spacing="0.10em">RED ALERT</text>
+
+      <!-- 3. cwc → sentinel (amber) -->
+      <path class="conn" id="c-cwc-sent" d="M170,368 H216 V270 H260"
+            stroke="#F59E0B" stroke-width="2" fill="none" marker-end="url(#ar-amber)"/>
+
+      <!-- 4. risk_memory → sentinel (calibration, p1 dashed) -->
+      <path class="conn" id="c-rm-sent" d="M340,170 V240"
+            stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="5 3" fill="none" marker-end="url(#ar-p1)"/>
+      <text x="348" y="208" font-size="8" fill="#3B82F6" font-family="Martian Mono,monospace"
+            letter-spacing="0.04em">calibration</text>
+
+      <!-- 5. ward_db → preparedness -->
+      <path class="conn" id="c-ward-prep" d="M170,488 H218 V410 H260"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 6. sentinel → coordinator (risk briefing — amber) -->
+      <path class="conn" id="c-sent-coord" d="M420,270 H478 V322 H540"
+            stroke="#F59E0B" stroke-width="2" fill="none" marker-end="url(#ar-amber)"/>
+      <rect x="428" y="256" width="76" height="14" rx="2" fill="rgba(245,158,11,0.12)"/>
+      <text x="466" y="266.5" font-size="7" fill="#F59E0B" font-family="Martian Mono,monospace"
+            font-weight="500" text-anchor="middle" letter-spacing="0.08em">risk briefing</text>
+
+      <!-- 7. preparedness → coordinator (dashed) -->
+      <path class="conn" id="c-prep-coord" d="M420,410 H640 V354"
+            stroke="rgba(100,150,210,0.18)" stroke-width="1.5" stroke-dasharray="5 3" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 8. coordinator → triage -->
+      <path class="conn" id="c-coord-tri" d="M740,322 H800 V140 H840"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 9. coordinator → field_intel -->
+      <path class="conn" id="c-coord-fi" d="M740,322 H800 V250 H840"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 10. coordinator → dispatch -->
+      <path class="conn" id="c-coord-disp" d="M740,322 H790 V370 H840"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 11. coordinator → communication -->
+      <path class="conn" id="c-coord-comm" d="M740,322 H800 V490 H840"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+      <!-- Fan-out label -->
+      <text x="807" y="315" font-size="7.5" fill="rgba(100,150,210,0.40)"
+            font-family="Martian Mono,monospace" letter-spacing="0.06em">ACTIVATE ×4</text>
+
+      <!-- 12. dispatch → inc_cmd (security, red dashed) -->
+      <path class="conn" id="c-disp-cmd" d="M990,370 H1150"
+            stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#ar-sec)"/>
+      <rect x="1017" y="356" width="117" height="14" rx="2" fill="rgba(239,68,68,0.10)"/>
+      <text x="1075" y="366.5" font-size="7" fill="#EF4444" font-family="Martian Mono,monospace"
+            font-weight="500" text-anchor="middle" letter-spacing="0.09em">AWAITING APPROVAL</text>
+
+      <!-- 13. communication → comms_off (security, red dashed) -->
+      <path class="conn" id="c-comm-off" d="M990,490 H1150"
+            stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#ar-sec)"/>
+      <rect x="1017" y="476" width="117" height="14" rx="2" fill="rgba(239,68,68,0.10)"/>
+      <text x="1075" y="486.5" font-size="7" fill="#EF4444" font-family="Martian Mono,monospace"
+            font-weight="500" text-anchor="middle" letter-spacing="0.09em">AWAITING APPROVAL</text>
+
+      <!-- 14. inc_cmd → damage_assess -->
+      <path class="conn" id="c-cmd-da" d="M1325,370 H1368 V290 H1420"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="1333" y="364" font-size="8" fill="rgba(100,150,210,0.35)"
+            font-family="Martian Mono,monospace" letter-spacing="0.04em">approved</text>
+
+      <!-- 15. comms_off → damage_assess (dashed) -->
+      <path class="conn" id="c-off-da" d="M1325,490 H1388 V300 H1420"
+            stroke="rgba(100,150,210,0.18)" stroke-width="1.5" stroke-dasharray="5 3" fill="none" marker-end="url(#ar)"/>
+
+      <!-- 16. damage_assess → reconciliation -->
+      <path class="conn" id="c-da-recon" d="M1507,320 V390"
+            stroke="rgba(100,150,210,0.22)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="1515" y="358" font-size="8" fill="rgba(100,150,210,0.35)"
+            font-family="Martian Mono,monospace" letter-spacing="0.04em">loss report</text>
+
+      <!-- 17. reconciliation → risk_memory (lessons learned — emerald top corridor) -->
+      <path class="conn" id="c-recon-rm" d="M1595,420 H1640 V48 H340 V110"
+            stroke="#10B981" stroke-width="1.5" stroke-dasharray="5 3" fill="none" marker-end="url(#ar-p3)"/>
+      <rect x="880" y="34" width="120" height="15" rx="2" fill="rgba(16,185,129,0.10)"/>
+      <text x="940" y="44.5" font-size="7" fill="#10B981" font-family="Martian Mono,monospace"
+            font-weight="500" text-anchor="middle" letter-spacing="0.09em">LESSONS LEARNED</text>
+
+      <!-- ════ NODES ════ -->
+
+      <!-- ── DATA SOURCES ── -->
+
+      <!-- hist_db: Flood History -->
+      <g>
+        <rect x="30" y="110" width="140" height="56" rx="5"
+              fill="#090F1A" stroke="rgba(82,96,120,0.35)" stroke-width="1"/>
+        <rect x="30" y="112" width="3" height="52" rx="1.5" fill="#526078" opacity="0.8"/>
+        <text x="42" y="132" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">FLOOD HISTORY</text>
+        <text x="42" y="149" font-size="8" fill="#4E6A8A"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">3 events · JSON</text>
+      </g>
+
+      <!-- imd: IMD -->
+      <g>
+        <rect x="30" y="240" width="140" height="56" rx="5"
+              fill="#090F1A" stroke="rgba(82,96,120,0.35)" stroke-width="1"/>
+        <rect x="30" y="242" width="3" height="52" rx="1.5" fill="#526078" opacity="0.8"/>
+        <text x="42" y="262" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">IMD</text>
+        <text x="42" y="279" font-size="8" fill="#4E6A8A"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Rainfall forecast</text>
+      </g>
+
+      <!-- cwc: CWC FloodWatch -->
+      <g>
+        <rect x="30" y="340" width="140" height="56" rx="5"
+              fill="#090F1A" stroke="rgba(82,96,120,0.35)" stroke-width="1"/>
+        <rect x="30" y="342" width="3" height="52" rx="1.5" fill="#526078" opacity="0.8"/>
+        <text x="42" y="360" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">CWC FLOODWATCH</text>
+        <text x="42" y="376" font-size="8" fill="#4E6A8A"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Water body advisory</text>
+      </g>
+
+      <!-- ward_db: Ward Profiles -->
+      <g>
+        <rect x="30" y="460" width="140" height="56" rx="5"
+              fill="#090F1A" stroke="rgba(82,96,120,0.35)" stroke-width="1"/>
+        <rect x="30" y="462" width="3" height="52" rx="1.5" fill="#526078" opacity="0.8"/>
+        <text x="42" y="479" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">WARD PROFILES</text>
+        <text x="42" y="496" font-size="8" fill="#4E6A8A"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">4 wards · vulnerability</text>
+      </g>
+
+      <!-- ── PHASE 1 AGENTS ── -->
+
+      <!-- risk_memory -->
+      <g filter="url(#f-p1)">
+        <rect x="260" y="110" width="160" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(59,130,246,0.28)" stroke-width="1"/>
+        <rect x="260" y="112" width="3" height="56" rx="1.5" fill="#3B82F6"/>
+        <text x="272" y="133" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">RISK MEMORY</text>
+        <text x="272" y="151" font-size="8" fill="#3B82F6" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Historical patterns</text>
+      </g>
+
+      <!-- sentinel — P0 — amber radar sweep behind -->
+      <circle cx="340" cy="270" r="20" fill="none" stroke="#F59E0B">
+        <animate attributeName="r" values="20;90;20" dur="3.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        <animate attributeName="stroke-opacity" values="0.50;0;0.50" dur="3.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        <animate attributeName="stroke-width" values="1.5;0.3;1.5" dur="3.2s" repeatCount="indefinite"/>
+      </circle>
+      <g filter="url(#f-amber)">
+        <rect x="260" y="240" width="160" height="60" rx="5"
+              fill="#0C1018" stroke="#F59E0B" stroke-width="1.5"/>
+        <rect x="260" y="242" width="3" height="56" rx="1.5" fill="#F59E0B"/>
+        <text x="272" y="263" font-size="13" fill="#DDEEFF" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">SENTINEL</text>
+        <text x="272" y="281" font-size="8" fill="#F59E0B" fill-opacity="0.85"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Forecast &amp; risk score</text>
+        <!-- P0 badge -->
+        <rect x="390" y="244" width="24" height="13" rx="2" fill="#F59E0B"/>
+        <text x="402" y="254" font-size="7.5" fill="#050C16" font-weight="700"
+              font-family="Martian Mono,monospace" text-anchor="middle" letter-spacing="0.05em">P0</text>
+      </g>
+
+      <!-- preparedness -->
+      <g filter="url(#f-p1)">
+        <rect x="260" y="380" width="160" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(59,130,246,0.28)" stroke-width="1"/>
+        <rect x="260" y="382" width="3" height="56" rx="1.5" fill="#3B82F6"/>
+        <text x="272" y="403" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">PREPAREDNESS</text>
+        <text x="272" y="421" font-size="8" fill="#3B82F6" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Pre-season audit</text>
+      </g>
+
+      <!-- ── COORDINATOR ── -->
+      <g filter="url(#f-cloud)">
+        <rect x="540" y="290" width="200" height="64" rx="6"
+              fill="#0D1020" stroke="rgba(139,92,246,0.40)" stroke-width="1.5"/>
+        <rect x="540" y="292" width="3" height="60" rx="1.5" fill="#8B5CF6"/>
+        <text x="554" y="316" font-size="14" fill="#DDEEFF" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">RESILIENCEOPS COORDINATOR</text>
+        <text x="554" y="334" font-size="8" fill="#8B5CF6" fill-opacity="0.85"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Google ADK Runner</text>
+      </g>
+
+      <!-- ── PHASE 2 AGENTS ── -->
+
+      <!-- triage -->
+      <g filter="url(#f-p2)">
+        <rect x="840" y="110" width="150" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(249,115,22,0.28)" stroke-width="1"/>
+        <rect x="840" y="112" width="3" height="56" rx="1.5" fill="#F97316"/>
+        <text x="852" y="133" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">TRIAGE</text>
+        <text x="852" y="151" font-size="8" fill="#F97316" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Dedup &amp; prioritize</text>
+      </g>
+
+      <!-- field_intel -->
+      <g filter="url(#f-p2)">
+        <rect x="840" y="220" width="150" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(249,115,22,0.28)" stroke-width="1"/>
+        <rect x="840" y="222" width="3" height="56" rx="1.5" fill="#F97316"/>
+        <text x="852" y="243" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">FIELD INTEL</text>
+        <text x="852" y="261" font-size="8" fill="#F97316" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Parse &amp; geocode</text>
+      </g>
+
+      <!-- dispatch -->
+      <g filter="url(#f-p2)">
+        <rect x="840" y="340" width="150" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(249,115,22,0.28)" stroke-width="1"/>
+        <rect x="840" y="342" width="3" height="56" rx="1.5" fill="#F97316"/>
+        <text x="852" y="363" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">DISPATCH</text>
+        <text x="852" y="381" font-size="8" fill="#F97316" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Team matching</text>
+      </g>
+
+      <!-- communication -->
+      <g filter="url(#f-p2)">
+        <rect x="840" y="460" width="150" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(249,115,22,0.28)" stroke-width="1"/>
+        <rect x="840" y="462" width="3" height="56" rx="1.5" fill="#F97316"/>
+        <text x="852" y="483" font-size="13" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.04em">COMMUNICATION</text>
+        <text x="852" y="501" font-size="8" fill="#F97316" fill-opacity="0.8"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">EN / HI / MR drafts</text>
+      </g>
+
+      <!-- ── HUMAN GATES ── -->
+
+      <!-- inc_cmd -->
+      <g filter="url(#f-sec)">
+        <rect x="1150" y="340" width="175" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(239,68,68,0.32)" stroke-width="1"/>
+        <rect x="1150" y="342" width="3" height="56" rx="1.5" fill="#EF4444"/>
+        <text x="1162" y="361" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">INCIDENT COMMANDER</text>
+        <text x="1162" y="379" font-size="8" fill="#EF4444" fill-opacity="0.80"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Dispatch approval gate</text>
+      </g>
+
+      <!-- comms_off -->
+      <g filter="url(#f-sec)">
+        <rect x="1150" y="460" width="175" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(239,68,68,0.32)" stroke-width="1"/>
+        <rect x="1150" y="462" width="3" height="56" rx="1.5" fill="#EF4444"/>
+        <text x="1162" y="479" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">COMMS OFFICER</text>
+        <text x="1162" y="497" font-size="8" fill="#EF4444" fill-opacity="0.80"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">Advisory approval gate</text>
+      </g>
+
+      <!-- ── PHASE 3 AGENTS ── -->
+
+      <!-- damage_assess -->
+      <g filter="url(#f-p3)">
+        <rect x="1420" y="260" width="175" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(16,185,129,0.28)" stroke-width="1"/>
+        <rect x="1420" y="262" width="3" height="56" rx="1.5" fill="#10B981"/>
+        <text x="1432" y="281" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">DAMAGE ASSESSMENT</text>
+        <text x="1432" y="299" font-size="8" fill="#10B981" fill-opacity="0.80"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">SDRF eligibility</text>
+      </g>
+
+      <!-- reconciliation -->
+      <g filter="url(#f-p3)">
+        <rect x="1420" y="390" width="175" height="60" rx="5"
+              fill="#090F1A" stroke="rgba(16,185,129,0.28)" stroke-width="1"/>
+        <rect x="1420" y="392" width="3" height="56" rx="1.5" fill="#10B981"/>
+        <text x="1432" y="413" font-size="12" fill="#C4D4E8" font-weight="700"
+              font-family="Barlow Condensed,sans-serif" letter-spacing="0.03em">RECONCILIATION</text>
+        <text x="1432" y="431" font-size="8" fill="#10B981" fill-opacity="0.80"
+              font-family="Martian Mono,monospace" letter-spacing="0.04em">After-Action Review</text>
+      </g>
+
+    </svg>
+  </div>
+</section>
+
+<!-- ══ PHASE PANELS ══════════════════════════════════════════════════ -->
+<div class="phase-grid">
+
+  <!-- Phase 1 -->
+  <div class="phase-panel">
+    <div class="pp-head">
+      <span class="pp-phase-id" style="color:var(--p1)">01</span>
+      <span class="pp-phase-name" style="color:var(--p1)">Forecast &amp; Prepare</span>
+    </div>
+    <div class="pp-agents">
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">
+          Sentinel <span class="p0-badge">P0</span>
+        </div>
+        <div class="pp-agent-role">Ward risk scoring · IMD + CWC feeds · 0.35×hazard + 0.25×exposure</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Risk Memory</div>
+        <div class="pp-agent-role">5-year hotspot history · Sentinel calibration inputs</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Preparedness</div>
+        <div class="pp-agent-role">Shelter audit · evacuation routes · resource inventory</div>
+      </div>
+    </div>
+    <div class="pp-finding" style="color:var(--p1)">
+      Output: W19 CRITICAL 0.804 &nbsp;·&nbsp; W12 CRITICAL 0.783
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase-panel">
+    <div class="pp-head">
+      <span class="pp-phase-id" style="color:var(--p2)">02</span>
+      <span class="pp-phase-name" style="color:var(--p2)">Live Response</span>
+    </div>
+    <div class="pp-agents">
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Triage</div>
+        <div class="pp-agent-role">Deduplicates 10+ multi-source alerts per event</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Field Intel</div>
+        <div class="pp-agent-role">Geocodes raw reports to ward + classifies incident type</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Dispatch</div>
+        <div class="pp-agent-role">Scores teams on availability × proximity × equipment</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Communication</div>
+        <div class="pp-agent-role">Drafts public advisories in EN / HI / MR</div>
+      </div>
+    </div>
+    <div class="pp-finding" style="color:var(--p2)">
+      Dispatch recommendation: AWAITING COMMANDER APPROVAL
+    </div>
+  </div>
+
+  <!-- Human Gates -->
+  <div class="phase-panel">
+    <div class="pp-head">
+      <span class="pp-phase-id" style="color:var(--sec)">HG</span>
+      <span class="pp-phase-name" style="color:var(--sec)">Human Gates</span>
+    </div>
+    <div class="pp-agents">
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Incident Commander</div>
+        <div class="pp-agent-role">Reviews Dispatch recommendation before any team deploys to the field</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Comms Officer</div>
+        <div class="pp-agent-role">Reviews Communication drafts before any advisory reaches residents</div>
+      </div>
+    </div>
+    <div class="pp-finding" style="color:var(--sec)">
+      AI recommends. Humans decide. No autonomous deployment or broadcast.
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase-panel">
+    <div class="pp-head">
+      <span class="pp-phase-id" style="color:var(--p3)">03</span>
+      <span class="pp-phase-name" style="color:var(--p3)">Recover &amp; Improve</span>
+    </div>
+    <div class="pp-agents">
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Damage Assessment</div>
+        <div class="pp-agent-role">Aggregates post-event field reports · SDRF compensation eligibility</div>
+      </div>
+      <div class="pp-agent">
+        <div class="pp-agent-name" style="color:var(--text)">Reconciliation</div>
+        <div class="pp-agent-role">Matches deployments to incidents · After-Action Review draft</div>
+      </div>
+    </div>
+    <div class="pp-finding" style="color:var(--p3)">
+      Lessons learned loop back to Risk Memory for next season
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <span class="footer-txt">RESILIENCE-OPS/AI &nbsp;·&nbsp; v1.0.0 &nbsp;·&nbsp; Hack2Skill 2024 &nbsp;·&nbsp; Google ADK + Gemini 3.8 Flash</span>
+  <span class="footer-txt">9 AGENTS &nbsp;·&nbsp; 3 PHASES &nbsp;·&nbsp; 2 HUMAN APPROVAL GATES</span>
+</footer>
+
+<script>
+  // Draw-on animation: measure each connection path and animate stroke-dashoffset
+  // Only runs if prefers-reduced-motion is not set
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!prefersReduced) {
+    const conns = document.querySelectorAll('.conn');
+    conns.forEach((path, i) => {
+      // Use a safe max length — no getTotalLength needed for this approach
+      const len = path.getTotalLength ? path.getTotalLength() : 2000;
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      // Stagger: 0.08s per connection, starting after 0.2s page load delay
+      const delay = 0.2 + i * 0.08;
+      // Sequence: data sources first (0-4), then phase1-to-coord (5-6), then fan-out (7-10), then gates (11-12), then phase3 (13-16), finally feedback (17)
+      path.style.animation = `draw-path 0.9s ${delay}s cubic-bezier(0.23, 1, 0.32, 1) forwards`;
+    });
+  }
+</script>
+</body>
+</html>

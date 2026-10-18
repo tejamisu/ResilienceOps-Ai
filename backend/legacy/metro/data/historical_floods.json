@@ -1,0 +1,72 @@
+{
+  "city": "Coastal Metro City (Simulated)",
+  "data_period": "2019-2024",
+  "source": "DDMA Historical Incident Records (Simulated)",
+  "events": [
+    {
+      "event_id": "FL-2024-07",
+      "date": "2024-07-18",
+      "trigger": "Extremely heavy rainfall — 298mm in 24h",
+      "duration_hours": 36,
+      "peak_wards_affected": ["W12", "W19", "W07"],
+      "casualties": {"deaths": 2, "injuries": 14, "missing": 0},
+      "evacuations": 3200,
+      "homes_damaged": 420,
+      "critical_infra_affected": ["City PHC W12 — ground floor flooded", "Drain D-17 blocked", "Route A impassable for 18h"],
+      "response_time_to_first_action_hrs": 3.5,
+      "shelters_opened": ["SH-B"],
+      "relief_gaps": ["Ward 19 received water tanker 22h after flooding — delay due to route blockage"],
+      "lessons": ["Pre-position pump at D-17 junction before monsoon peak", "Alternative route for Ward 19 must be pre-identified", "Early warning to W19 needs loudspeaker — low smartphone penetration"]
+    },
+    {
+      "event_id": "FL-2023-07",
+      "date": "2023-07-22",
+      "trigger": "Very heavy rainfall — 210mm in 18h",
+      "duration_hours": 24,
+      "peak_wards_affected": ["W07", "W12"],
+      "casualties": {"deaths": 0, "injuries": 5, "missing": 0},
+      "evacuations": 1800,
+      "homes_damaged": 180,
+      "critical_infra_affected": ["Route A flooded for 10h"],
+      "response_time_to_first_action_hrs": 2.8,
+      "shelters_opened": ["SH-B", "SH-D"],
+      "relief_gaps": [],
+      "lessons": ["Route A needs flood-risk signage", "W07 elderly residents need mobility-assisted evacuation support"]
+    },
+    {
+      "event_id": "FL-2022-08",
+      "date": "2022-08-02",
+      "trigger": "Cyclone remnant — 380mm in 48h",
+      "duration_hours": 60,
+      "peak_wards_affected": ["W12", "W19", "W07", "W04"],
+      "casualties": {"deaths": 5, "injuries": 32, "missing": 1},
+      "evacuations": 8500,
+      "homes_damaged": 1200,
+      "critical_infra_affected": ["W12 substation — shut for 14h", "All drainage channels blocked", "Routes A and F impassable for 36h"],
+      "response_time_to_first_action_hrs": 5.2,
+      "shelters_opened": ["SH-B", "SH-C", "SH-D", "SH-E", "SH-F"],
+      "relief_gaps": ["W19 isolated for 28h — only boat access", "Shelter SH-F inaccessible for mobility-impaired residents"],
+      "lessons": ["W19 requires pre-positioned boat for access during high floods", "Shelter SH-F accessibility must be upgraded", "State-level SDRF support must be requested at 12h if event exceeds 200mm forecast"]
+    }
+  ],
+  "recurring_hotspots": [
+    {
+      "location": "Drain D-17 junction — Ward 12",
+      "flood_events": ["FL-2024-07", "FL-2022-08", "FL-2021-07"],
+      "issue": "Chronic blockage due to solid waste accumulation upstream",
+      "recommended_action": "Pre-monsoon inspection + mechanical clearing required"
+    },
+    {
+      "location": "Route F — Ward 19 (single access road)",
+      "flood_events": ["FL-2024-07", "FL-2022-08", "FL-2023-07"],
+      "issue": "Only road access floods at >80mm rainfall",
+      "recommended_action": "Pre-position boat at Ward 19 entry; identify high-ground assembly points"
+    },
+    {
+      "location": "W12–W19 stormwater channel",
+      "flood_events": ["FL-2024-07", "FL-2022-08", "FL-2021-07", "FL-2020-08"],
+      "issue": "Channel undersized for extreme rainfall events",
+      "recommended_action": "Long-term: channel widening. Short-term: additional pump staging at entry points"
+    }
+  ]
+}

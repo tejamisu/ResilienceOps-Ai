@@ -1,0 +1,1910 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayanad Readiness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+
+  :root {
+    --page: #111413;
+    --rail: #161918;
+    --card: #1e2221;
+    --card-hi: #252a28;
+    --glass: rgba(26, 30, 28, 0.78);
+    --glass-hi: rgba(40, 45, 42, 0.82);
+    --hair: rgba(255, 255, 255, 0.07);
+    --hair-2: rgba(255, 255, 255, 0.12);
+    --ink: #f2f4f2;
+    --ink-2: #b9c0bb;
+    --ink-3: #8a928d;
+    --critical: #ff6b5f;
+    --critical-bg: rgba(110, 38, 33, 0.55);
+    --warning: #f0a04b;
+    --ok: #7bd88f;
+    --camp: #3b8bdd;
+    --medical: #e07a9b;
+    --crew: #c9d14a;
+    --focus: #ffffff;
+    --r-lg: 26px;
+    --r-md: 20px;
+    --rail-w: 468px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font: 400 14px/1.4 "Outfit", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 12px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .skip { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #111; text-decoration: none; }
+  .skip:focus { top: 12px; }
+
+  .app { position: relative; display: grid; grid-template-columns: var(--rail-w) 1fr; height: 100vh; }
+
+  /* ================= top bar ================= */
+  .topbar {
+    position: absolute; inset: 0 0 auto 0; z-index: 20;
+    display: flex; align-items: center; gap: 16px;
+    height: 72px; padding: 0 20px 0 22px;
+    pointer-events: none;
+  }
+  .topbar > * { pointer-events: auto; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: 18px; }
+  .brand svg { width: 34px; height: 34px; }
+  .brand span { font-size: 16px; font-weight: 400; letter-spacing: .01em; }
+
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav button {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 40px; padding: 0 16px; border: 0; border-radius: 999px;
+    background: transparent; color: var(--ink-2); font-size: 14px; cursor: pointer;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .nav button:hover { color: var(--ink); background: rgba(255,255,255,.05); }
+  .nav button[aria-current="page"] { background: var(--card-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--hair-2); }
+  .nav .count {
+    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+    display: inline-grid; place-items: center; font-size: 12px; font-weight: 500;
+    background: var(--critical); color: #1b0f0e;
+  }
+  .nav .tick { color: var(--ok); }
+  .nav .sep { width: 1px; height: 20px; background: var(--hair-2); margin: 0 8px; }
+
+  .tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border: 1px solid var(--hair);
+  }
+  .search {
+    display: flex; align-items: center; gap: 10px; width: 260px; height: 44px; padding: 0 16px; border-radius: 999px;
+  }
+  .search input { flex: 1; min-width: 0; background: none; border: 0; color: var(--ink); font: inherit; font-size: 14px; }
+  .search input::placeholder { color: var(--ink-2); }
+  .search input:focus { outline: none; }
+  .search:focus-within { box-shadow: 0 0 0 2px var(--focus); }
+  .search kbd { font: 12px "Outfit"; color: var(--ink-2); border: 1px solid var(--hair-2); border-radius: 6px; padding: 1px 6px; }
+  .round {
+    position: relative; width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center; cursor: pointer; color: var(--ink);
+  }
+  .round:hover { background: var(--glass-hi); }
+  .round svg { width: 20px; height: 20px; }
+  .round .badge {
+    position: absolute; top: -2px; right: -2px; min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 999px; background: var(--critical); color: #1b0f0e; font-size: 11px; font-weight: 500;
+    display: grid; place-items: center;
+  }
+  .live { white-space: nowrap; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--ink-2); }
+  .live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px rgba(123,216,143,.15); }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(140deg, #7c8a7d, #3b443e); font-size: 14px; font-weight: 500; letter-spacing: .02em;
+    border: 1px solid var(--hair-2); cursor: pointer;
+  }
+
+  /* ================= left rail ================= */
+  .rail {
+    position: relative; z-index: 2;
+    background: var(--rail);
+    padding: 84px 16px 20px;
+    overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .filters button {
+    height: 46px; border-radius: 16px; border: 1px solid var(--hair); background: var(--card);
+    display: flex; align-items: baseline; justify-content: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--ink-2);
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .filters button b { font-weight: 400; font-size: 15px; color: var(--ink); }
+  .filters button[aria-pressed="false"] { opacity: .55; }
+  .filters button:hover { background: var(--card-hi); }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile {
+    display: grid; grid-template-columns: 1fr auto; align-items: end;
+    min-height: 96px; padding: 16px 18px; border-radius: var(--r-md); background: var(--card); border: 1px solid var(--hair);
+  }
+  .tile .lbl { display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); }
+  .tile .lbl svg { width: 20px; height: 20px; }
+  .tile .num { font-size: 34px; font-weight: 200; line-height: 1; }
+
+  .card { position: relative; border-radius: var(--r-lg); background: var(--card); border: 1px solid var(--hair); }
+  .card-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .card-h h2, .card-h h3 { font-size: 17px; font-weight: 400; }
+  .card-h p { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .open {
+    width: 36px; height: 36px; margin: -6px -8px 0 0; border-radius: 50%;
+    display: grid; place-items: center; text-decoration: none; color: var(--ink); flex: none;
+  }
+  .open:hover { background: rgba(255,255,255,.07); }
+  .open svg { width: 18px; height: 18px; }
+
+  .kpi { padding: 18px 20px 14px; }
+  .kpi-value { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+  .big { font-size: 46px; font-weight: 200; line-height: .95; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .big .dim { color: var(--ink-3); }
+  .big .unit { font-size: 16px; font-weight: 300; color: var(--ink-2); letter-spacing: 0; margin-left: 4px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px;
+    font-size: 12px; border: 1px solid currentColor; white-space: nowrap;
+  }
+  .chip.warn { color: var(--warning); }
+  .chip.crit { color: var(--critical); }
+  .chip.ok { color: var(--ok); }
+  .chip.neutral { color: var(--ink-2); border-color: var(--hair-2); }
+  .chart { display: block; width: 100%; height: 150px; margin-top: 12px; overflow: visible; }
+  .chart text { font: 400 11px "Outfit"; fill: var(--ink-2); }
+  .legend-inline { display: flex; gap: 16px; margin-top: 6px; font-size: 12px; color: var(--ink-2); }
+  .legend-inline i { display: inline-block; width: 16px; height: 0; border-top: 1.5px solid var(--ink); vertical-align: middle; margin-right: 6px; }
+  .legend-inline i.dash { border-top-style: dashed; border-color: var(--ink-2); }
+  .legend-inline i.thr { border-top: 1.5px dashed var(--warning); }
+
+  /* team cards */
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .team {
+    padding: 16px 16px 12px; cursor: pointer; text-align: left; color: inherit; font: inherit;
+    transition: border-color .2s ease, background .3s ease;
+  }
+  .team:hover { border-color: var(--hair-2); }
+  .team[aria-pressed="true"] {
+    background: radial-gradient(120% 90% at 0% 0%, #6f7a70 0%, #343b37 38%, var(--card) 72%);
+    border-color: var(--hair-2);
+  }
+  .team .when { font-size: 12px; color: var(--ink-2); margin-top: 2px; white-space: nowrap; }
+  .vehicle { position: relative; height: 74px; margin: 10px 0 6px; display: grid; place-items: center; }
+  .vehicle svg { width: 100%; height: 100%; color: rgba(242,244,242,.85); }
+  .unit-tag {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 3px; border-radius: 999px;
+    background: rgba(70,76,72,.92); font-size: 13px; border: 1px solid var(--hair-2); white-space: nowrap;
+  }
+  .unit-tag b { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 400; background: rgba(30,34,32,.9); border: 1px solid var(--hair-2); font-size: 12px; }
+  .team-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .signals { display: flex; gap: 10px; white-space: nowrap; font-size: 12px; color: var(--ink-2); }
+  .signals span { display: inline-flex; align-items: center; gap: 4px; }
+  .signals svg { width: 14px; height: 14px; }
+  .signals .weak { color: var(--warning); }
+  .minimap { display: block; width: 100%; height: 76px; margin-top: 10px; border-radius: 12px; }
+  .scrub { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .scrub .bar {
+    position: relative; flex: 1; height: 14px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 1px, transparent 1px 4px);
+    border-radius: 2px;
+  }
+  .scrub .bar::after { content: ""; position: absolute; inset: 0 0 0 var(--p); background: var(--card); opacity: .65; }
+  .team[aria-pressed="true"] .scrub .bar::after { background: #2a302d; }
+  .scrub .knob { position: absolute; top: 50%; left: var(--p); z-index: 1; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px rgba(0,0,0,.35); }
+
+  /* ================= map ================= */
+  .stage { position: relative; z-index: 1; overflow: hidden; }
+  #map { position: absolute; inset: 0; background: #0e1211; }
+  #map .leaflet-tile-pane { filter: saturate(.6) brightness(.86) contrast(1.08); }
+  #map .hillshade { mix-blend-mode: multiply; }
+  .scrim { position: absolute; inset: 0; z-index: 400; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(17,20,19,.82) 0%, rgba(17,20,19,0) 18%),
+      linear-gradient(0deg, rgba(17,20,19,.6) 0%, rgba(17,20,19,0) 22%),
+      linear-gradient(90deg, rgba(22,25,24,.55) 0%, rgba(22,25,24,0) 12%);
+  }
+  .leaflet-container { font-family: "Outfit", sans-serif; }
+  .leaflet-control-attribution {
+    background: rgba(17,20,19,.75) !important; color: var(--ink-2) !important; font-size: 11px; border-radius: 8px 0 0 0; padding: 2px 8px !important;
+  }
+  .leaflet-control-attribution a { color: var(--ink) !important; }
+  .leaflet-bottom.leaflet-right { bottom: 0; }
+
+  .map-head { position: absolute; z-index: 500; left: 28px; top: 92px; max-width: 520px; pointer-events: none; }
+  .map-head > * { pointer-events: auto; }
+  .map-head h1 { font-size: 44px; font-weight: 200; letter-spacing: -.01em; line-height: 1.05; text-shadow: 0 2px 24px rgba(0,0,0,.5); }
+  .map-head .sub { margin-top: 6px; font-size: 14px; color: var(--ink-2); text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .map-chips { display: flex; flex-wrap: nowrap; gap: 8px; margin-top: 14px; }
+  .pill-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 999px;
+    font-size: 13px; cursor: pointer; color: var(--ink);
+  }
+  .pill-btn:hover { background: var(--glass-hi); }
+  .pill-btn svg { width: 16px; height: 16px; }
+  .pill-btn .sim { color: var(--warning); }
+
+  /* map key: opens upward from the map controls, like the Stack tray */
+  .key-ctl { position: relative; flex: none; }
+  .legend {
+    position: absolute; bottom: 56px; left: 0; width: 280px; height: auto; padding: 14px 16px; border-radius: 18px; display: none;
+    font-size: 13px; color: var(--ink); z-index: 3;
+  }
+  .legend.is-open { display: grid; gap: 9px; }
+  /* icon-only control tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]::after { content: attr(data-tip); position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); padding: 6px 10px; border-radius: 10px; white-space: nowrap; font: 400 12px Outfit, system-ui, sans-serif; color: var(--ink);
+    background: rgba(17,20,19,.92); border: 1px solid var(--hair-2); box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; opacity: 0; visibility: hidden; z-index: 5; }
+  [data-tip]:hover::after, [data-tip]:focus-visible::after { opacity: 1; visibility: visible; }
+  .key-ctl.is-open [data-tip]::after { opacity: 0; visibility: hidden; }
+  .live.sim .dot { background: var(--warning); box-shadow: 0 0 0 4px rgba(240,160,75,.15); }
+  .legend div { display: flex; align-items: center; gap: 10px; }
+  .legend .sw { width: 22px; display: grid; place-items: center; flex: none; }
+
+  .help { border-color: rgba(255,255,255,.28); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hair-2);
+    background: rgba(255,255,255,.06); color: var(--ink); font-size: 13px; cursor: pointer;
+    transition: background-color .2s ease;
+  }
+  .btn:hover { background: rgba(255,255,255,.12); }
+  .btn.primary { background: var(--ink); color: #141716; border-color: var(--ink); font-weight: 500; }
+  .btn.primary:hover { background: #ffffff; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+
+  .controls { position: absolute; z-index: 500; left: 24px; bottom: 284px; display: flex; gap: 8px; }
+
+  /* markers */
+  .pin { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 2px solid rgba(255,255,255,.85); box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+  .pin svg { width: 14px; height: 14px; color: #fff; }
+  .pin.camp { background: var(--camp); }
+  .pin.med { background: var(--medical); }
+  .pin.crew { background: var(--crew); }
+  .pin.crew svg { color: #1a1c10; }
+  .pin.place { width: 18px; height: 18px; background: #d9ddd9; border-color: rgba(0,0,0,.25); }
+  .pin.place::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #3a403c; }
+  .incident { position: relative; width: 34px; height: 34px; display: grid; place-items: center; }
+  .incident .core { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--critical); border: 2px solid #fff; z-index: 1; }
+  .incident .core svg { width: 16px; height: 16px; color: #2a0d0a; }
+  .incident.warn .core { background: var(--warning); }
+  .incident .ring { position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--critical); opacity: 0; animation: ping 2.2s ease-out infinite; }
+  .incident.warn .ring { border-color: var(--warning); }
+  @keyframes ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+  .unit-marker {
+    width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(160,170,160,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.35); box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .unit-marker svg { width: 20px; height: 20px; color: #fff; transform: rotate(var(--rot, 0deg)); }
+  .map-label {
+    display: inline-block; line-height: 1.2;
+    font-size: 12px; color: var(--ink); white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,.9), 0 0 2px rgba(0,0,0,.9);
+  }
+  .map-label.blocked { color: #ffd1cc; font-weight: 500; }
+
+  .float-card { width: 200px; padding: 14px 16px; border-radius: 20px; color: var(--ink); }
+  .float-card .t { display: flex; justify-content: space-between; font-size: 14px; }
+  .float-card .s { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .float-card .v { font-size: 34px; font-weight: 200; margin-top: 10px; line-height: 1; }
+  .float-card .v .dim { color: var(--warning); font-size: 14px; font-weight: 400; margin-left: 6px; }
+
+  /* ================= decisions panel ================= */
+  .decisions {
+    position: absolute; z-index: 600; top: 84px; right: 20px; width: 360px;
+    max-height: calc(100% - 84px - 290px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #444 transparent;
+    padding: 18px 14px 14px; border-radius: 26px;
+  }
+  .decisions > header { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 8px; }
+  .decisions > header h2 { font-size: 19px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
+  .decisions > header .count { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 500; background: var(--critical); color: #1b0f0e; }
+  .group { margin-top: 14px; }
+  .group-h { display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: 14px; color: var(--ink); }
+  .group-h svg { width: 16px; height: 16px; color: var(--ink-2); }
+  .group-h span { color: var(--ink-2); }
+  .alert { margin-top: 8px; border-radius: 20px; background: rgba(255,255,255,.04); border: 1px solid var(--hair); }
+  .alert.crit { background: var(--critical-bg); border-color: rgba(255,107,95,.22); }
+  .alert.warn { background: rgba(110, 72, 30, .42); border-color: rgba(240,160,75,.2); }
+  .alert-toggle {
+    width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start;
+    padding: 14px 14px 12px; background: none; border: 0; text-align: left; cursor: pointer; border-radius: 20px;
+  }
+  .sev { min-width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 500; margin-top: 1px; }
+  .sev.crit { background: var(--critical); color: #1b0f0e; }
+  .sev.warn { background: var(--warning); color: #24160a; }
+  .alert-title { font-size: 14px; line-height: 1.35; }
+  .alert-meta { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .caret { width: 18px; height: 18px; margin-top: 2px; transition: transform .2s ease; color: var(--ink-2); }
+  .alert-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
+  .alert-body { padding: 0 14px 14px 46px; display: grid; gap: 12px; }
+  .alert-body[hidden] { display: none; }
+  .k { font-size: 12px; color: var(--ink-2); }
+  .affected { display: grid; gap: 8px; margin-top: 6px; }
+  .affected div { padding-left: 12px; border-left: 1.5px solid rgba(255,255,255,.5); font-size: 13px; }
+  .affected small { display: block; font-size: 12px; color: var(--ink-2); }
+  .rec { display: grid; grid-template-columns: 18px 1fr; gap: 8px; font-size: 13px; }
+  .rec svg { width: 16px; height: 16px; margin-top: 2px; }
+  .rec small { display: block; font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .conf { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--warning); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .why { font-size: 12px; color: var(--ink-2); padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.22); }
+  .why[hidden] { display: none; }
+  .why li { margin-left: 16px; margin-top: 3px; }
+  .state { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.25); }
+  .state svg { width: 16px; height: 16px; color: var(--ok); flex: none; }
+  .state[hidden] { display: none; }
+
+  /* ================= bottom cards ================= */
+  .bottom {
+    position: absolute; z-index: 600; left: 20px; right: 20px; bottom: 20px;
+    display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; height: 252px;
+  }
+  .bottom .card { padding: 18px 20px; border-radius: 26px; overflow: hidden; }
+  .bottom .kpi-value { margin-top: 6px; }
+  table.tasks { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .tasks th { text-align: left; font-weight: 400; font-size: 12px; color: var(--ink-2); padding: 0 8px 6px 0; }
+  .tasks td { padding: 7px 8px 7px 0; border-top: 1px solid var(--hair); white-space: nowrap; }
+  .tasks td small { color: var(--ink-2); font-size: 12px; }
+  .tasks .id { display: inline-flex; align-items: center; gap: 6px; }
+  .tasks .id b { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 400; font-size: 11px; border: 1px solid var(--hair-2); background: rgba(255,255,255,.05); }
+  .delta { display: inline-flex; align-items: center; gap: 5px; }
+  .delta svg { width: 13px; height: 13px; }
+  .delta.late { color: var(--warning); }
+  .delta.early { color: var(--ok); }
+  .ticksbar { display: inline-block; width: 44px; height: 12px; margin-left: 8px; vertical-align: middle; background: repeating-linear-gradient(90deg, rgba(255,255,255,.3) 0 1px, transparent 1px 5px); }
+  .status-txt { display: inline-flex; align-items: center; gap: 6px; }
+  .status-txt i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-2); }
+  .status-txt.await i { background: var(--critical); }
+  .status-txt.move i { background: var(--ok); }
+  .status-txt.late i { background: var(--warning); }
+  .camps svg { display: block; width: 100%; height: 160px; margin-top: 0; }
+  .camps text { font: 400 12px "Outfit"; fill: var(--ink); }
+  .camps text.sub { font-size: 11px; fill: var(--ink-2); }
+  .camps text.warnc { fill: var(--warning); }
+
+  /* toast */
+  .toast {
+    position: fixed; z-index: 1000; left: 50%; bottom: 290px; transform: translate(-50%, 20px);
+    padding: 12px 18px; border-radius: 999px; font-size: 14px; opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* reduced motion: motion.css keeps fades and drops movement (gentler, not zero) */
+  @media (prefers-reduced-motion: reduce) {
+    .toast { transition: opacity .25s ease; }
+    html { scroll-behavior: auto; }
+  }
+
+  /* smaller screens: stack */
+  @media (max-width: 1180px) {
+    body { overflow: auto; }
+    .app { display: block; height: auto; }
+    .topbar { position: relative; flex-wrap: wrap; height: auto; padding: 12px 16px; background: var(--rail); }
+    .nav { order: 3; width: 100%; overflow-x: auto; }
+    .search { width: 200px; }
+    .rail { padding-top: 12px; }
+    .stage { height: auto; display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px; }
+    #map { position: relative; height: 70vh; border-radius: 24px; }
+    .scrim { display: none; }
+    .map-head { top: 16px; left: 32px; }
+    .controls { position: absolute; top: calc(70vh - 64px); left: 32px; bottom: auto; }
+    .decisions, .bottom { position: static; width: auto; max-height: none; height: auto; }
+    .bottom { grid-template-columns: 1fr; }
+    .toast { bottom: 24px; }
+  }
+
+
+  /* ================= PREPARE additions (design-system.md §12) ================= */
+  :root { --warning-bg: rgba(110, 72, 30, 0.42); }
+  .nav .count.warn { background: var(--warning); color: #24160a; }
+  .nav .dot-alert { width: 8px; height: 8px; border-radius: 50%; background: var(--critical); }
+
+  /* map layers control (replaces the layer pills): thumbnail + hover/focus/tap tray */
+  .controls { align-items: flex-end; }
+  .layer-ctl { position: relative; flex: none; }
+  .layer-btn { position: relative; width: 64px; height: 64px; padding: 4px; border-radius: 18px; cursor: pointer; display: block; }
+  .layer-btn > svg { display: block; width: 100%; height: 100%; border-radius: 14px; }
+  .layer-btn .cap-lbl { position: absolute; left: 4px; right: 4px; bottom: 4px; height: 22px; border-radius: 0 0 14px 14px;
+    display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; color: var(--ink);
+    background: linear-gradient(180deg, rgba(17,20,19,0), rgba(17,20,19,.85)); }
+  .layer-btn .cap-lbl svg { width: 12px; height: 12px; }
+  .layer-btn:hover, .layer-ctl.is-open .layer-btn { box-shadow: 0 0 0 2px var(--ink); }
+  .layer-tray { position: absolute; left: 0; bottom: 76px; padding: 12px 12px 10px; border-radius: 22px; white-space: nowrap; /* no heading: tiles start at the top */
+    opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; z-index: 2; }
+  .layer-ctl.is-open .layer-tray { opacity: 1; visibility: visible; transform: none; transition: opacity .18s ease, transform .18s ease; }
+  .tiles-row { display: flex; gap: 10px; }
+  .layer-tile { width: 76px; padding: 0; border: 0; background: none; color: var(--ink-2); font: inherit; cursor: pointer; display: grid; justify-items: center; gap: 2px; text-align: center; }
+  .layer-tile .thumb { position: relative; width: 64px; height: 64px; border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--hair-2); transition: box-shadow .15s ease, opacity .15s ease; }
+  .layer-tile .thumb svg { display: block; width: 100%; height: 100%; }
+  .layer-tile .on { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); display: grid; place-items: center; }
+  .layer-tile .on::after { content: ""; width: 7px; height: 4px; border-left: 1.6px solid #141716; border-bottom: 1.6px solid #141716; transform: rotate(-45deg) translate(0.5px,-0.5px); }
+  .layer-tile .lbl { font-size: 12px; margin-top: 4px; white-space: nowrap; }
+  .layer-tile .n { font-size: 11px; color: var(--ink-2); }
+  .layer-tile[aria-pressed="true"] .thumb { box-shadow: 0 0 0 2px var(--ink); }
+  .layer-tile[aria-pressed="true"] .lbl { color: var(--ink); }
+  .layer-tile[aria-pressed="false"] .thumb { opacity: .45; }
+  .layer-tile[aria-pressed="false"] .on { display: none; }
+  .layer-tile:hover .thumb { opacity: 1; }
+  .layer-tile:focus-visible { outline: none; }
+  .layer-tile:focus-visible .thumb { outline: 2px solid var(--focus); outline-offset: 3px; }
+  /* merged status card: two stats + layer toggles (replaces .filters + .tiles) */
+  .rail { padding-top: 80px; }
+  .status { padding: 14px 14px 12px; }
+  .status .stats { display: grid; grid-template-columns: 1fr 1fr; }
+  .status .stat { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; padding: 2px 6px 0 6px; }
+  .status .stat + .stat { border-left: 1px solid var(--hair-2); padding-left: 16px; }
+  .status .lbl { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); line-height: 1.2; }
+  .status .lbl svg { width: 18px; height: 18px; }
+  .status .lbl svg.clock { color: var(--warning); }
+  .status .num { font-size: 34px; font-weight: 200; line-height: 1; white-space: nowrap; }
+  .status .num small { font-size: 15px; font-weight: 300; color: var(--ink-2); margin-left: 2px; }
+  .status .num .dim { color: var(--ink-3); }
+  .tile .lbl svg.clock { color: var(--warning); }
+  .tile .num small { font-size: 16px; font-weight: 300; color: var(--ink-2); margin-left: 2px; }
+  .tile .num .dim { color: var(--ink-3); }
+
+  /* ---------- priority places: tile → detail card (17 Oct 2026; ported from the prepare/ component, app tokens) ---------- */
+  .pp-stage { position: relative; }
+  #pp-grid[hidden] { display: none; }
+  .place .pp-art { margin: 10px -2px 2px; }
+  .pp-terrain { display: block; width: 100%; height: auto; overflow: visible; }
+  .pp-base { stroke: rgba(255,255,255,.22); stroke-width: 1; }
+  .pp-under { fill: none; stroke: rgba(255,255,255,.3); stroke-width: 1.4; }
+  .pp-surface { fill: none; stroke: #e6e9e6; stroke-width: 1.6; stroke-linejoin: round; }
+  .pp-zone { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+  .pp-house { fill: var(--card); stroke: #e6e9e6; stroke-width: 1.3; stroke-linejoin: round; }
+  .pp-river { fill: none; stroke: rgba(255,255,255,.4); stroke-width: 1.3; stroke-linecap: round; }
+  .pp-rain { stroke-width: 1.1; stroke-linecap: round; opacity: .32; fill: none; }
+  .pp-tick { stroke: rgba(255,255,255,.2); stroke-width: 1; stroke-dasharray: 2 3; }
+  .pp-pin-bg { fill: #1a1d1c; stroke-width: 1.8; }
+  .pp-pin-ico { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pp-pin-name { fill: var(--ink); font: 500 12px Outfit, sans-serif; }
+  .pp-pin-val { font: 400 11.5px Outfit, sans-serif; }
+  .pp-pin[data-band="severe"] .pp-pin-bg { stroke: var(--critical); fill: #3a2422; } .pp-pin[data-band="severe"] .pp-pin-ico { stroke: #ff8a7e; } .pp-pin[data-band="severe"] .pp-pin-val { fill: #ff8a7e; }
+  .pp-pin[data-band="high"] .pp-pin-bg { stroke: var(--warning); } .pp-pin[data-band="high"] .pp-pin-ico { stroke: var(--warning); } .pp-pin[data-band="high"] .pp-pin-val { fill: var(--warning); }
+  .pp-pin[data-band="moderate"] .pp-pin-bg { stroke: rgba(255,255,255,.3); } .pp-pin[data-band="moderate"] .pp-pin-ico { stroke: var(--ink-2); } .pp-pin[data-band="moderate"] .pp-pin-val { fill: var(--ink-2); }
+  .pp-pin-glow { fill: var(--critical); opacity: .45; }
+  /* the open card takes exactly the 2×2 grid's box: fixed height, the landscape absorbs whatever is left */
+  .pp-detail { display: flex; flex-direction: column; overflow: hidden; background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 14px 14px 12px; }
+  .pp-detail[data-lvl="crit"] { --risk: var(--critical); } .pp-detail[data-lvl="warn"] { --risk: var(--warning); } .pp-detail[data-lvl="neutral"] { --risk: var(--ink-2); }
+  .pp-head { flex: none; } .pp-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; } .pp-top h2 { min-width: 0; }
+  .pp-tools { display: flex; align-items: center; gap: 8px; flex: none; }
+  .pp-head h2 { display: flex; align-items: center; font-size: 19px; font-weight: 400; }
+  .pp-head h2 .rank { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-right: 9px; padding: 0 5px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,.12); }
+  .pp-head h2 .rank.crit { background: var(--critical); color: #1b0f0e; } .pp-head h2 .rank.warn { background: var(--warning); color: #24160a; }
+  .pp-close { width: 32px; height: 32px; border-radius: 12px; border: 1px solid var(--hair-2); background: rgba(255,255,255,.06); color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+  .pp-close:hover { background: rgba(255,255,255,.12); } .pp-close svg { width: 16px; height: 16px; }
+  .pp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+  .pp-line .risk { display: inline-flex; align-items: center; gap: 6px; color: var(--risk); } .pp-line .risk svg { width: 14px; height: 14px; }
+  .pp-line .pp-why { margin-left: auto; color: var(--ink); font-size: 12.5px; text-underline-offset: 3px; }
+  .pp-line .ready { color: var(--ok); } .pp-line .ready.zero { color: var(--ink); }
+  .pp-line .ppl { display: inline-flex; align-items: center; gap: 5px; } .pp-line .ppl svg { width: 14px; height: 14px; } .pp-line .ppl b { font-weight: 400; color: var(--ink); }
+  .pp-alert { margin-top: 10px; padding: 8px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; color: var(--ink); background: color-mix(in srgb, var(--risk) 10%, transparent); border: 1px solid color-mix(in srgb, var(--risk) 32%, transparent); }
+  .pp-alert b { color: var(--risk); font-weight: 500; margin-right: 4px; }
+  .pp-land { flex: 1; min-height: 0; margin: 12px 0 0; } .pp-land .pp-terrain { height: 100%; }
+  .pp-plan { flex: none; margin-top: 14px; }
+  .pp-plan-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .pp-plan-h h3 { font-size: 13.5px; font-weight: 400; } .pp-plan-h .ok { color: var(--ok); } .pp-plan-h .ok.zero { color: var(--ink); } .pp-plan-h .muted { color: var(--ink-2); }
+  .pp-sm { height: 32px; padding: 0 12px; font-size: 12.5px; }
+  .pp-focus { display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 10px; border-radius: 14px; border: 1px solid var(--hair); }
+  .pp-focus .f-ico { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 2px var(--warning); }
+  .pp-focus .f-ico svg { width: 15px; height: 15px; fill: none; stroke: var(--warning); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pp-focus:not([data-status="awaiting"]) .f-ico { background: var(--ok); box-shadow: none; } .pp-focus:not([data-status="awaiting"]) .f-ico svg { stroke: #10301a; }
+  .pp-focus .f-text { flex: 1; min-width: 0; display: grid; gap: 1px; font-size: 13px; } .pp-focus .f-text b, .pp-focus .f-text .muted { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-focus .muted { font-size: 12px; color: var(--ink-2); } .pp-focus .f-state { font-size: 12.5px; color: var(--ok); white-space: nowrap; }
+  .pp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 10px; margin-top: 10px; }
+  .pp-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .pp-chips .k { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; color: var(--warning); } .pp-chips .k svg { width: 13px; height: 13px; }
+  .pp-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 9px; border-radius: 9px; border: 1px solid var(--hair-2); background: transparent; color: var(--ink-2); font: inherit; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pp-chip b { color: var(--ink); font-weight: 500; }
+  .pp-chip .bar { width: 18px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; } .pp-chip .bar i { display: block; height: 100%; width: calc(var(--v) * 100%); background: var(--warning); }
+  .pp-chip.unk { cursor: pointer; color: var(--ink); } .pp-chip.unk svg { width: 13px; height: 13px; color: var(--ink-2); }
+  .pp-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .pp-link { border: 0; background: none; padding: 4px 2px; color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .pp-unk { flex-basis: 100%; margin: 0; padding: 8px 12px 8px 26px; border-radius: 12px; border: 1px solid var(--hair); font-size: 12.5px; display: grid; gap: 3px; }
+  .pp-unk[hidden] { display: none; } .pp-unk li::marker { color: var(--warning); } .pp-unk li.muted { list-style: none; margin-left: -14px; color: var(--ink-2); }
+  /* motion: factor pins drop in, rain fades in, severe pins glow three times then stop; reduced motion shows the final state */
+  .pp-pin { transition: opacity .3s ease calc(var(--i) * 70ms + 120ms), transform .36s cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i) * 70ms + 120ms); }
+  .pp-rain-g { transition: opacity .6s ease .4s; }
+  .pre .pp-pin { opacity: 0; transform: translateY(-8px); } .pre .pp-rain-g, .pre .pp-pin-glow { opacity: 0; }
+  .pp-detail:not(.pre) .pp-pin-glow { animation: pp-glow 1.8s ease-in-out 1.1s 3; }
+  @keyframes pp-glow { 0%, 100% { opacity: .45; } 50% { opacity: .85; } }
+  @media (prefers-reduced-motion: reduce) { .pp-pin, .pp-rain-g { transition: none; } .pp-detail .pp-pin-glow { animation: none !important; } }
+
+  /* priority place cards reuse .team anatomy */
+  .place .vehicle svg { color: rgba(242,244,242,.85); }
+  /* priority rank sits in the title, so nothing covers the terrain drawing */
+  .place h3 .rank { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-right: 8px; padding: 0 5px; border-radius: 999px; font-size: 12px; font-weight: 500; vertical-align: 2px; background: rgba(255,255,255,.12); color: var(--ink); }
+  .place h3 .rank.crit { background: var(--critical); color: #1b0f0e; } .place h3 .rank.warn { background: var(--warning); color: #24160a; }
+  .place .team-meta .chip { border: 0; padding: 0; height: auto; font-size: 13px; } /* risk label as plain coloured text */
+  .place .stats { display: flex; gap: 10px; white-space: nowrap; font-size: 12px; color: var(--ink-2); }
+  .place .stats span { display: inline-flex; align-items: center; gap: 4px; }
+  .place .stats svg { width: 14px; height: 14px; }
+  .ready-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+  .segs { display: flex; gap: 3px; }
+  .segs i { width: 16px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); }
+  .segs i.on { background: var(--ok); }
+  .window { position: relative; flex: 1; height: 14px; border-radius: 2px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 1px, transparent 1px 4px); }
+  .window .band { position: absolute; top: 0; bottom: 0; left: var(--a); width: var(--w); border-radius: 2px; background: rgba(240,160,75,.45); border-left: 1px solid var(--warning); border-right: 1px solid var(--warning); }
+  .window .band.crit { background: rgba(255,107,95,.4); border-color: var(--critical); }
+  .window .knob { position: absolute; top: 50%; left: var(--p); width: 8px; height: 8px; border-radius: 50%; background: var(--ink); transform: translate(-50%,-50%); box-shadow: 0 0 0 3px rgba(0,0,0,.35); }
+
+  /* plan panel */
+  .ai-note { display: grid; grid-template-columns: 18px 1fr; gap: 8px; margin: 12px 8px 0; font-size: 13px; }
+  .ai-note svg { width: 16px; height: 16px; margin-top: 2px; }
+  .ai-note small { display: block; color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+  .ai-note .row { display: flex; gap: 8px; margin-top: 8px; }
+  .ai-note .why { margin-top: 8px; }
+  .task { margin-top: 8px; border-radius: 18px; background: rgba(255,255,255,.04); border: 1px solid var(--hair); }
+  .task.crit { background: var(--critical-bg); border-color: rgba(255,107,95,.22); }
+  .task.warn { background: var(--warning-bg); border-color: rgba(240,160,75,.2); }
+  .task-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 12px 12px 12px 12px; }
+  .check { position: relative; width: 22px; height: 22px; margin-top: 1px; }
+  .check input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .check span { position: absolute; inset: 0; border-radius: 7px; border: 1.5px solid rgba(255,255,255,.55); display: grid; place-items: center; pointer-events: none; }
+  .check input:checked + span { background: var(--ink); border-color: var(--ink); }
+  .check input:checked + span::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #141716; border-bottom: 2px solid #141716; transform: rotate(-45deg) translate(1px,-1px); }
+  .check input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .check input:disabled { cursor: default; }
+  .check input:disabled + span { opacity: .45; }
+  .task-title { font-size: 14px; line-height: 1.35; }
+  .task-meta { display: block; font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .task-more { width: 32px; height: 32px; margin: -5px -5px 0 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); cursor: pointer; display: grid; place-items: center; }
+  .task-more:hover { background: rgba(255,255,255,.07); color: var(--ink); }
+  .task-more svg { width: 18px; height: 18px; transition: transform .2s ease; }
+  .task-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .task-body { padding: 0 12px 12px 44px; display: grid; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .task-body[hidden] { display: none; }
+  .task-body b { font-weight: 400; color: var(--ink); }
+  .task .chip { margin-top: 6px; }
+  .draft { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: center; padding: 10px 8px; border-top: 1px solid var(--hair); font-size: 13px; }
+  .draft:first-of-type { border-top: 0; }
+  .draft svg { width: 16px; height: 16px; color: var(--ink-2); }
+  .draft small { display: block; font-size: 12px; color: var(--ink-2); }
+  .draft .btn { height: 34px; padding: 0 12px; font-size: 12px; }
+  .batch {
+    flex: none; margin: 0 -14px; padding: 12px 14px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    border-top: 1px solid var(--hair); font-size: 12px; color: var(--ink-2);
+  }
+  .batch .state { flex: 1; }
+  #plan { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; max-height: calc(100% - 84px - 290px); }
+  #plan.collapsed { display: none; }
+  #plan > header { flex: none; }
+  .plan-body { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -14px; padding: 0 14px 14px; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+  .collapse-btn { width: 36px; height: 36px; margin: -4px -4px 0 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .collapse-btn:hover { background: rgba(255,255,255,.08); }
+  .collapse-btn svg { width: 18px; height: 18px; }
+  .plan-pill {
+    position: absolute; z-index: 600; top: 84px; right: 20px; height: 52px; padding: 0 10px 0 18px; gap: 10px; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  .plan-pill[hidden] { display: none; }
+  .plan-pill .count { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 500; background: var(--warning); color: #24160a; }
+  .plan-pill .exp { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); }
+  .plan-pill .exp svg { width: 16px; height: 16px; }
+  .plan-pill.alert { background: var(--critical-bg); border-color: rgba(255,107,95,.35); }
+  .plan-pill.alert .count { background: var(--critical); color: #1b0f0e; }
+  .activation { margin-top: 14px; }
+  .activation[hidden] { display: none; }
+  .activation .alert-body { padding-top: 0; }
+
+  /* timeline card */
+  .outlook { position: relative; }
+  .outlook .head-actions { display: flex; align-items: center; gap: 4px; margin: -6px -8px 0 0; }
+  .outlook .open { margin: 0; }
+  .demo-btn { height: 32px; padding: 0 12px; font-size: 12px; }
+  .demo-btn svg { width: 12px; height: 12px; }
+  .tl { position: relative; margin-top: 6px; }
+  .tl svg { display: block; width: 100%; height: 120px; }
+  .tl text { font: 400 11px "Outfit"; fill: var(--ink-2); }
+  .tl text.amber { fill: var(--warning); }
+  .tl text.ink { fill: var(--ink); }
+  .scrubber { position: absolute; left: -9px; width: calc(100% + 18px); bottom: 14px; height: 26px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: ew-resize; }
+  .scrubber::-webkit-slider-runnable-track { height: 26px; background: transparent; }
+  .scrubber::-moz-range-track { height: 26px; background: transparent; }
+  .scrubber::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: 4px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(0,0,0,.35); }
+  .scrubber::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(0,0,0,.35); }
+  .scrubber:focus-visible { outline: none; }
+  .scrubber:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .scrubber:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .preview-label { position: absolute; top: 0; right: 0; font-size: 12px; color: var(--ink-2); }
+  .preview-label b { font-weight: 400; color: var(--ink); }
+
+  .bottom { grid-template-columns: 1.15fr 1fr; }
+  /* capacity: aligned rows, never height-encoded (design-system §6.10) */
+  .cap-rows { list-style: none; display: grid; gap: 2px; margin-top: 4px; }
+  .cap-rows li { display: grid; grid-template-columns: 76px minmax(60px, 1fr) 64px 80px 38px; align-items: center; column-gap: 8px; height: 24px; font-size: 13px; }
+  .cap-rows .nm { color: var(--ink-2); white-space: nowrap; }
+  .cap-rows .trk { position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); }
+  .cap-rows .trk i { position: absolute; inset: 0 auto 0 0; width: var(--r); border-radius: 3px; background: var(--warning); }
+  .cap-rows li.ok .trk i { background: var(--ink); }
+  .cap-rows .trk::after { content: ""; position: absolute; right: 0; top: -3px; bottom: -3px; width: 1.5px; border-radius: 1px; background: rgba(255,255,255,.75); }
+  .cap-rows .val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cap-rows .st { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; color: var(--warning); }
+  .cap-rows li.ok .st { color: var(--ok); }
+  .cap-rows li.req .trk i { background: repeating-linear-gradient(90deg, var(--warning) 0 6px, transparent 6px 9px), var(--warning); opacity: .75; }
+  .cap-rows li.req .st { color: var(--ink); }
+  .cap-rows .st svg { width: 11px; height: 11px; flex: none; }
+  .cap-rows li > span:last-child { justify-self: end; }
+  .cap .kpi-value .k { margin-left: auto; text-align: right; }
+  .outlook .kpi-value .k { margin-left: auto; text-align: right; }
+  .cap-fix { height: 24px; padding: 0 2px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; border-radius: 6px; text-decoration: underline; text-decoration-color: rgba(242,244,242,.35); text-underline-offset: 3px; }
+  .cap-fix:hover { text-decoration-color: var(--ink); }
+  .flash { animation: flash 1.2s ease-out 1; }
+  @keyframes flash { 0%, 40% { box-shadow: 0 0 0 2px var(--warning); } 100% { box-shadow: 0 0 0 2px rgba(240,160,75,0); } }
+
+  /* map: prepare */
+  .stage-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(17,20,19,.75); color: var(--ink); white-space: nowrap; border: 1px solid var(--hair-2); }
+  .stage-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--warning); }
+  .stage-pill.ok i { background: var(--ok); }
+  .float-card .v small { font-size: 14px; font-weight: 400; color: var(--ink-2); margin-left: 6px; }
+  .float-card .band-lbl { margin-top: 8px; font-size: 12px; color: var(--warning); display: flex; align-items: center; gap: 6px; }
+
+  /* handover dialog */
+  .scrim-modal { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; background: rgba(8,10,9,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 20px; }
+  .scrim-modal[hidden] { display: none; }
+  .dialog { width: 600px; max-width: 100%; max-height: calc(100vh - 40px); overflow-y: auto; padding: 24px 24px 20px; border-radius: 26px; }
+  .dialog h2 { font-size: 24px; font-weight: 300; }
+  .dialog .lead { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+  .dialog .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .dialog section { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,.04); border: 1px solid var(--hair); }
+  .dialog section.wide { grid-column: 1 / -1; }
+  .dialog h3 { font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .dialog ul { list-style: none; display: grid; gap: 7px; font-size: 13px; }
+  .dialog li { display: grid; grid-template-columns: 16px 1fr; gap: 8px; }
+  .dialog li svg { width: 14px; height: 14px; margin-top: 3px; }
+  .dialog li small { display: block; font-size: 12px; color: var(--ink-2); }
+  .dialog .foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; font-size: 12px; color: var(--ink-2); }
+  .dialog .foot .actions { flex: none; }
+  .ic-ok { color: var(--ok); } .ic-warn { color: var(--warning); } .ic-ink { color: var(--ink-2); }
+  /* product tour (15 Oct 2026): dimmed page, the real area lit, a centred glass card with a live crop on top */
+  .tour { position: fixed; inset: 0; z-index: 3000; }
+  .tour[hidden] { display: none; }
+  .tour-dim { position: fixed; inset: 0; background: rgba(8,10,9,.62); backdrop-filter: blur(6px) saturate(.9); -webkit-backdrop-filter: blur(6px) saturate(.9);
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+  .tour-spot { position: fixed; border-radius: 26px; pointer-events: none; box-shadow: 0 0 0 2px rgba(242,244,242,.55);
+    transition: left .35s ease, top .35s ease, width .35s ease, height .35s ease; }
+  .tour-spot.none { display: none; }
+  .tour-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 560px; transition: left .35s ease, top .35s ease; /* width never animates: placement measures it */ border-radius: 26px; overflow: hidden;
+    background: rgba(26,30,28,.9); border: 1px solid var(--hair-2); backdrop-filter: blur(20px) saturate(1.2); box-shadow: 0 30px 80px -20px rgba(0,0,0,.6); }
+  .tour-prev { position: relative; height: 230px; overflow: hidden; background: var(--page); border-bottom: 1px solid var(--hair); }
+  .tour-prev::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 70%, rgba(17,20,19,.55)); pointer-events: none; }
+  .tour-clone { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
+  .tour-body { padding: 22px 28px 24px; text-align: center; }
+  .tour-n { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tour-body h2 { margin-top: 6px; font-size: 19px; font-weight: 300; }
+  .tour-body #tour-p { margin: 8px auto 0; max-width: 440px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+  .tour-acts { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+  .tour-acts .btn { height: 40px; padding: 0 18px; }
+  .tour-acts .btn svg { width: 11px; height: 11px; margin-right: 6px; }
+  @media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; } }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#plan">Skip to plan</a>
+
+<div class="app">
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="ResilienceOps AI home">
+      <svg viewBox="0 0 34 34" fill="none" stroke="#f2f4f2" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 25c5-1 7-6 12-6s7 4 14 3"/><path d="M4 19c5-1 6-8 12-8s8 5 14 4" opacity=".75"/><path d="M4 13c5-1 6-9 12-9s8 5 14 4" opacity=".5"/><circle cx="16" cy="29" r="1.6" fill="#f2f4f2" stroke="none"/>
+      </svg>
+      <span>ResilienceOps</span>
+    </a>
+    <nav class="nav" aria-label="Operational phase">
+      <button type="button" aria-current="page" data-phase="Prepare">Prepare<span class="count warn" id="nav-count" aria-label="5 tasks to approve">5</span></button>
+      <button type="button" data-phase="Respond" id="nav-respond">Respond<span class="sr-only" id="nav-respond-sr">, not active</span></button>
+      <button type="button" data-phase="Recover">Recover</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" data-phase="Timeline">Timeline</button>
+      <button type="button" data-phase="Reports">Reports</button>
+      <button type="button" data-phase="Audit">Audit</button>
+    </nav>
+    <div class="tools">
+      <label class="search glass">
+        <span class="sr-only">Search places, teams and reports</span>
+        <input type="search" placeholder="Search places, teams">
+        <kbd aria-hidden="true">Ctrl K</kbd>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+      </label>
+      <div class="live glass sim" title="Simulated scenario: no live data feeds"><span class="dot" aria-hidden="true"></span><span id="clock-lbl">Simulated · 06:20 IST</span></div>
+      <button class="round glass" type="button" aria-label="District helpline and radio" data-toast="Helpline console opens here (not in this mock-up)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.5-2 2.5-5 2.5"/></svg>
+      </button>
+      <button class="round glass" type="button" id="bell" aria-label="Alerts, 1 unread" data-toast="1 alert: IMD red alert for Wayanad (06:00)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V10a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg>
+        <span class="badge" id="bell-count" aria-hidden="true">1</span>
+      </button>
+      <button class="avatar" type="button" aria-label="Signed in as Ananya Menon, Incident Commander" title="Ananya Menon · Incident Commander, DDMA Wayanad">AM</button>
+    </div>
+  </header>
+
+  <!-- ============ LEFT RAIL ============ -->
+  <aside class="rail" aria-label="Forecast and priority places">
+    <section class="card status" aria-label="Readiness status">
+      <div class="stats">
+        <div class="stat">
+          <span class="lbl"><svg class="clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Until peak rain</span>
+          <span class="num" id="t-peak"><span aria-hidden="true">8<small>h</small> 40<small>m</small></span><span class="sr-only">8 hours 40 minutes</span></span>
+        </div>
+        <div class="stat">
+          <span class="lbl"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#7bd88f"/><path d="m7.5 12.2 3 3 6-6.2" fill="none" stroke="#10301a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Readiness done</span>
+          <span class="num" id="t-ready"><span aria-hidden="true">4<span class="dim">/12</span></span><span class="sr-only">4 of 12</span></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card kpi" aria-labelledby="rain-h">
+      <div class="card-h">
+        <div>
+          <h2 id="rain-h">Rainfall forecast · Meppadi</h2>
+          <p>Next 24 hours · IMD red alert, issued 06:00</p>
+        </div>
+        <a class="open" href="#" aria-label="Open forecast detail" data-toast="Forecast detail: source, model run and confidence">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>
+        </a>
+      </div>
+      <div class="kpi-value">
+        <p class="big"><span aria-hidden="true">234.</span><span class="dim" aria-hidden="true">6</span><span class="unit" aria-hidden="true">mm</span><span class="sr-only">234.6 millimetres expected</span></p>
+        <span class="chip warn">
+          <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z" fill="currentColor"/></svg>
+          Extremely heavy
+        </span>
+      </div>
+      <svg class="chart" id="rain-chart" viewBox="0 0 420 150" role="img" aria-label="Forecast rainfall for the next 24 hours. Expected to rise from about 4 to 17 millimetres per hour, above the 15 millimetre landslide-watch line between roughly 15:00 and 21:00. The shaded band shows the likely range."></svg>
+      <div class="legend-inline" aria-hidden="true">
+        <span><i class="dash"></i>Expected</span><span><i style="border-top:6px solid rgba(255,255,255,.14);width:16px"></i>Likely range</span><span><i class="thr"></i>Landslide watch, 15 mm/h</span>
+      </div>
+    </section>
+
+    <div class="pp-stage" id="places"><div class="teams" id="pp-grid"><!-- generated --></div></div>
+  </aside>
+
+  <!-- ============ MAP STAGE ============ -->
+  <main class="stage" id="main" aria-label="Wayanad forecast risk">
+    <div id="map" role="region" aria-label="Map of Wayanad showing expected risk zones, staged teams, relief camps and roads at risk"></div>
+    <div class="scrim" aria-hidden="true"></div>
+
+    <div class="map-head">
+      <h1>Wayanad Readiness</h1>
+      <p class="sub">Heavy rain forecast · next 24 h · <span id="sub-clock">06:20 IST</span></p>
+      <div class="map-chips">
+        <button type="button" class="pill-btn glass" data-toast="Event switcher: WYN-2026-001 is the only event">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15c3-2 6 2 9 0s6 2 9 0"/><path d="M7 4v6M12 3v7M17 4v6"/></svg>
+          WYN-2026-001 · <span id="event-phase">Prepare</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="width:14px;height:14px"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button type="button" class="pill-btn glass help" id="guide-btn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7"/><circle cx="12" cy="17" r=".8" fill="currentColor"/></svg>New here?</button>
+      </div>
+
+    </div>
+
+    <div class="controls" role="group" aria-label="Map controls">
+      <div class="layer-ctl" id="layer-ctl">
+        <button type="button" class="layer-btn glass" id="layer-btn" aria-expanded="false" aria-controls="layer-tray" aria-label="Stack: map layers, 4 of 4 shown">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="10" fill="#2a332e"/><path d="M0 40c10-6 18 2 28-4s18-12 28-6v26H0z" fill="#33402f"/><path d="M0 22c12 4 20-8 32-4s16 6 24 2" stroke="rgba(255,255,255,.12)" fill="none"/><path d="M18 16c8-5 18-3 21 4s-2 15-10 15-15-3-14-10 1-7 3-9z" fill="none" stroke="#f0a04b" stroke-width="1.2" stroke-dasharray="3 2"/><path d="M8 46c10-8 18-10 40-24" stroke="#f0a04b" stroke-width="2.4" stroke-dasharray="4 3" fill="none"/><circle cx="40" cy="38" r="4.5" fill="#3b8bdd" stroke="#fff"/></svg>
+          <span class="cap-lbl">Stack</span>
+        </button>
+        <div class="layer-tray glass" id="layer-tray" role="group" aria-label="Show on map">
+          <div class="tiles-row">
+        <button type="button" class="layer-tile" data-filter="zones" aria-pressed="true" aria-label="Risk zones, 4">
+          <span class="thumb"><svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="10" fill="#2a332e"/><path d="M0 40c10-6 18 2 28-4s18-12 28-6v26H0z" fill="#33402f"/><path d="M0 22c12 4 20-8 32-4s16 6 24 2" stroke="rgba(255,255,255,.12)" fill="none"/><defs><pattern id="lt-h" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V5" stroke="#f0a04b" stroke-width="1.3"/></pattern></defs><path d="M14 14c10-6 26-4 30 6s-2 22-14 22-22-4-20-14 2-12 4-14z" fill="url(#lt-h)" stroke="#f0a04b" stroke-width="1.2" stroke-dasharray="3 2"/></svg><i class="on" aria-hidden="true"></i></span>
+          <span class="lbl">Risk zones</span><span class="n">4</span>
+        </button>
+        <button type="button" class="layer-tile" data-filter="staged" aria-pressed="true" aria-label="Staged, 4">
+          <span class="thumb"><svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="10" fill="#2a332e"/><path d="M0 40c10-6 18 2 28-4s18-12 28-6v26H0z" fill="#33402f"/><path d="M0 22c12 4 20-8 32-4s16 6 24 2" stroke="rgba(255,255,255,.12)" fill="none"/><circle cx="28" cy="28" r="17" fill="none" stroke="rgba(255,255,255,.55)" stroke-dasharray="3 3"/><circle cx="28" cy="28" r="9" fill="rgba(160,170,160,.6)" stroke="rgba(255,255,255,.6)"/><path d="M23 28.5 33 24l-3.6 9.6-1.5-3.8z" fill="#fff"/></svg><i class="on" aria-hidden="true"></i></span>
+          <span class="lbl">Staged</span><span class="n">4</span>
+        </button>
+        <button type="button" class="layer-tile" data-filter="camp" aria-pressed="true" aria-label="Camps, 3">
+          <span class="thumb"><svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="10" fill="#2a332e"/><path d="M0 40c10-6 18 2 28-4s18-12 28-6v26H0z" fill="#33402f"/><path d="M0 22c12 4 20-8 32-4s16 6 24 2" stroke="rgba(255,255,255,.12)" fill="none"/><path d="M10 46c8-10 20-12 36-8" stroke="rgba(230,233,230,.45)" stroke-width="2" fill="none"/><circle cx="20" cy="24" r="7" fill="#3b8bdd" stroke="#fff" stroke-width="1.5"/><path d="M20 20.5 23.6 27h-7.2z" fill="#fff"/><circle cx="38" cy="34" r="7" fill="#3b8bdd" stroke="#fff" stroke-width="1.5"/><path d="M38 30.5 41.6 37h-7.2z" fill="#fff"/></svg><i class="on" aria-hidden="true"></i></span>
+          <span class="lbl">Camps</span><span class="n">3</span>
+        </button>
+        <button type="button" class="layer-tile" data-filter="roads" aria-pressed="true" aria-label="Roads at risk, 2">
+          <span class="thumb"><svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="10" fill="#2a332e"/><path d="M0 40c10-6 18 2 28-4s18-12 28-6v26H0z" fill="#33402f"/><path d="M0 22c12 4 20-8 32-4s16 6 24 2" stroke="rgba(255,255,255,.12)" fill="none"/><path d="M6 44C18 34 26 30 50 12" stroke="rgba(230,233,230,.5)" stroke-width="2.4" fill="none"/><path d="M28 30C36 24 42 18 50 12" stroke="#f0a04b" stroke-width="3.2" stroke-dasharray="5 4" stroke-linecap="round" fill="none"/></svg><i class="on" aria-hidden="true"></i></span>
+          <span class="lbl">Roads at risk</span><span class="n">2</span>
+        </button>
+          </div>
+        </div>
+      </div>
+      <div class="key-ctl" id="key-ctl">
+        <button class="round glass" type="button" id="legend-btn" aria-expanded="false" aria-controls="legend" aria-label="Map key" data-tip="Map key">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="4" height="4" rx="1"/><rect x="4" y="15" width="4" height="4" rx="1"/><path d="M11 7h9M11 17h9"/></svg>
+        </button>
+          <div class="legend glass" id="legend" role="region" aria-label="Map key">
+            <div><span class="sw"><svg width="22" height="14"><rect x="1" y="1" width="20" height="12" fill="none" stroke="#ff6b5f" stroke-dasharray="3 2"/><path d="M3 12l8-10M9 12l8-10M15 12l5-6" stroke="#ff6b5f"/></svg></span>Critical risk zone (likely band)</div>
+            <div><span class="sw"><svg width="22" height="14"><rect x="1" y="1" width="20" height="12" fill="none" stroke="#f0a04b" stroke-dasharray="3 2"/><path d="M3 12l8-10M9 12l8-10M15 12l5-6" stroke="#f0a04b"/></svg></span>High risk zone (likely band)</div>
+            <div><span class="sw"><svg width="22" height="14"><rect x="1" y="1" width="20" height="12" rx="6" fill="none" stroke="#f2f4f2" stroke-dasharray="2 3"/></svg></span>Possible band (wider, less certain)</div>
+            <div><span class="sw"><svg width="22" height="14"><circle cx="11" cy="7" r="6" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-dasharray="2 2"/></svg></span>Heaviest rain expected</div>
+            <div><span class="sw"><span class="pin camp" style="width:18px;height:18px;border-width:1.5px"></span></span>Relief camp</div>
+            <div><span class="sw"><span class="pin med" style="width:18px;height:18px;border-width:1.5px"></span></span>Hospital</div>
+            <div><span class="sw"><span class="pin crew" style="width:18px;height:18px;border-width:1.5px"></span></span>Road crew</div>
+            <div><span class="sw"><svg width="22" height="6"><path d="M1 3h20" stroke="#f0a04b" stroke-width="3" stroke-dasharray="5 3"/></svg></span>Road at risk</div>
+          </div>
+      </div>
+      <button class="round glass" type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button>
+      <button class="round glass" type="button" id="zfit" aria-label="Fit map to the priority areas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round"/></svg></button>
+      <button class="round glass" type="button" id="zout" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+    </div>
+
+    <!-- ============ PLAN PANEL ============ -->
+    <section class="decisions glass" id="plan" aria-labelledby="plan-h" tabindex="-1">
+      <header>
+        <h2 id="plan-h">Plan to approve <span class="count" id="plan-count" style="background:var(--warning);color:#24160a">5</span></h2>
+        <button class="collapse-btn" type="button" id="plan-collapse" aria-expanded="true" aria-controls="plan-body" aria-label="Minimise plan to see the map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4l-6 6M14 4.5V10h5.5M4 20l6-6M10 19.5V14H4.5"/></svg>
+        </button>
+      </header>
+      <div class="plan-body" id="plan-body">
+
+      <!-- appears during the demo -->
+      <div class="activation" id="activation" hidden>
+        <div class="alert crit">
+          <div class="alert-toggle" style="cursor:default">
+            <span class="sev crit" aria-hidden="true">!</span>
+            <span>
+              <span class="alert-title">Response activation recommended</span>
+              <span class="alert-meta" style="display:block">12:02 · Verified landslide report · 3 sources</span>
+            </span>
+            <span></span>
+          </div>
+          <div class="alert-body">
+            <div class="affected"><div>Landslide blocks the Meppadi–Chooralmala road<small>Inside the Meppadi critical zone, as forecast</small></div></div>
+            <div class="actions">
+              <button class="btn primary" type="button" id="open-handover">Review handover</button>
+              <button class="btn" type="button" id="keep-prep">Keep preparing</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+        <div>
+          <span id="ai-head">AI drafted 5 readiness tasks for Meppadi and Vythiri</span>
+          <small id="ai-basis">From the IMD forecast, slope-risk map, camp capacity and team availability</small>
+          <span class="conf"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="ai-conf">Medium–high confidence · forecast updated 20 min ago</span></span>
+          <ul class="why" id="why" hidden>
+            <li>Meppadi has the steepest slopes inside the heaviest-rain band and one access road.</li>
+            <li>Peak rain is expected 15:00–21:00, so teams must be in place by 12:00.</li>
+            <li>Meppadi camp has water for about 14 h at expected occupancy; it needs 48 h.</li>
+            <li>Sources: IMD district forecast, KSDMA slope-risk layer, camp manager reports, team roster.</li>
+          </ul>
+          <div class="row"><button class="btn" type="button" id="why-btn" aria-expanded="false" aria-controls="why" style="height:34px;font-size:12px">Why these tasks?</button></div>
+          <p class="ro-src" id="ai-src" hidden></p>
+        </div>
+      </div>
+
+      <div id="task-groups"><!-- generated --></div>
+
+      <div class="group">
+        <div class="group-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>
+          Drafts ready <span>(2)</span>
+        </div>
+        <div class="alert" style="padding:4px 6px">
+          <div class="draft">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>
+            <span>Public advisory<small>Malayalam + English · 3 areas</small></span>
+            <button class="btn" type="button" data-act="advisory" aria-label="Review the public advisory">Review</button>
+          </div>
+          <div class="draft" id="draft-ksdma">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg>
+            <span>KSDMA standby request<small>2 SDRF teams · closes the rescue gap</small></span>
+            <button class="btn" type="button" aria-label="Review the KSDMA standby request">Review</button>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="batch">
+        <span id="sel-count" aria-live="polite">5 of 5 selected</span>
+        <p class="state" id="plan-state" role="status" hidden></p>
+        <button class="btn primary" type="button" id="approve">Approve 5 tasks</button>
+      </div>
+    </section>
+
+    <button type="button" class="pill-btn glass plan-pill" id="plan-pill" hidden aria-controls="plan" aria-expanded="false">
+      <span id="pill-label">Plan to approve</span><span class="count" id="pill-count">5</span>
+      <span class="exp" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+    </button>
+
+    <!-- ============ BOTTOM CARDS ============ -->
+    <div class="bottom">
+      <section class="card glass outlook" aria-labelledby="out-h">
+        <div class="card-h">
+          <div><h2 id="out-h">24-hour outlook</h2></div>
+          <div class="head-actions">
+            <button class="btn demo-btn" type="button" id="demo">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>
+              Run demo to 12:02
+            </button>
+            <a class="open" href="#" aria-label="Open full forecast timeline" data-toast="Opens the full forecast timeline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="kpi-value">
+          <p class="big"><span aria-hidden="true">15:</span><span class="dim" aria-hidden="true">00</span><span class="sr-only">15:00</span></p>
+          <span class="k">peak landslide risk starts · teams ready by <b style="font-weight:400;color:var(--warning)">12:00</b></span>
+        </div>
+        <div class="tl">
+          <span class="preview-label" id="preview-lbl">Map shows <b>now</b></span>
+          <svg id="tl-svg" viewBox="0 0 480 120" aria-hidden="true"></svg>
+          <input class="scrubber" id="scrub" type="range" min="0" max="24" step="0.25" value="0.33" aria-label="Preview expected risk at time" aria-valuetext="06:20, now">
+        </div>
+      </section>
+
+      <section class="card glass cap" aria-labelledby="cap-h">
+        <div class="card-h">
+          <h2 id="cap-h">Capacity check</h2>
+          <a class="open" href="#" aria-label="Open capacity detail" data-toast="Opens resources and staging detail">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg>
+          </a>
+        </div>
+        <div class="kpi-value">
+          <p class="big"><span aria-hidden="true" id="cap-gaps">4</span><span class="unit" aria-hidden="true">gaps</span><span class="sr-only" id="cap-gaps-sr">4 capacity gaps</span></p>
+          <span class="k" id="cap-k">to close before 12:00</span>
+        </div>
+        <ul class="cap-rows" id="cap-rows" aria-label="Confirmed against needed"></ul>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ============ HANDOVER DIALOG ============ -->
+<div class="scrim-modal" id="handover" hidden>
+  <div class="dialog glass" role="dialog" aria-modal="true" aria-labelledby="ho-h" aria-describedby="ho-lead">
+    <h2 id="ho-h">Prepare → Respond handover</h2>
+    <p class="lead" id="ho-lead">Everything prepared so far moves into Respond with the event. Review it, then activate the response.</p>
+    <div class="cols">
+      <section><h3><svg class="ic-ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Readiness completed</h3><ul id="ho-done"></ul></section>
+      <section><h3><svg class="ic-warn" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z" fill="currentColor"/></svg>Open risks</h3><ul id="ho-open"></ul></section>
+      <section class="wide"><h3><svg class="ic-ink" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>Assumptions to monitor</h3>
+        <ul>
+          <li><svg class="ic-ink" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>Route C (forest track) may be needed if the km 7 road stays closed<small>Not verified since 09:40</small></span></li>
+          <li><svg class="ic-ink" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>About 10–18 Chooralmala households may be cut off<small>Ward officer to confirm by phone</small></span></li>
+          <li><svg class="ic-ink" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>Peak rain may arrive 1–2 h earlier than forecast<small>Observed rain is tracking the upper band</small></span></li>
+        </ul>
+      </section>
+    </div>
+    <div class="foot">
+      <span id="ho-note">Activating makes Respond the main view. Prepare stays available.</span>
+      <div class="actions">
+        <button class="btn" type="button" id="ho-cancel">Keep preparing</button>
+        <button class="btn primary" type="button" id="ho-activate">Activate Response</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+<!-- product tour: spotlight on the live area + a live crop of it in the card -->
+<div class="tour" id="tour" hidden>
+  <div class="tour-dim" id="tour-dim" aria-hidden="true"></div>
+  <div class="tour-spot" id="tour-spot" aria-hidden="true"></div>
+  <section class="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-h" aria-describedby="tour-p">
+    <div class="tour-prev" aria-hidden="true"><div class="tour-clone" id="tour-clone"></div></div>
+    <div class="tour-body">
+      <p class="tour-n" id="tour-n">1 of 6</p>
+      <h2 id="tour-h"></h2>
+      <p id="tour-p"></p>
+      <div class="tour-acts" id="tour-acts"></div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = s => document.querySelector(s);
+  const fmt = h => { const t = (6 * 60 + Math.round(h * 60)) % (24 * 60); return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+
+  /* ---------- state ---------- */
+  const S = { now: 0.33, preview: 0.33, approved: false, activated: false, running: false };
+
+  /* ---------- toast ---------- */
+  const toastEl = $('#toast'); let tt;
+  const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove('show'), 3200); };
+  document.addEventListener('click', e => { const t = e.target.closest('[data-toast]'); if (t) { e.preventDefault(); toast(t.dataset.toast); } });
+
+  /* ---------- nav ---------- */
+  document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => {
+    const p = b.dataset.phase;
+    if (p === 'Prepare') return;
+    if (p === 'Respond') return S.activated ? (location.href = 'wayanad-dashboard.html') : toast('Respond activates when a verified incident is handed over — try "Run demo"');
+    toast(`${p} view is next in the build — this mock-up shows Prepare`);
+  }));
+
+  /* ---------- guide + legend + why ---------- */
+  const lb = $('#legend-btn');
+  const setKey = o => { lb.setAttribute('aria-expanded', o); $('#legend').classList.toggle('is-open', o); $('#key-ctl').classList.toggle('is-open', o); };
+  lb.addEventListener('click', () => setKey(lb.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('pointerdown', e => { if (lb.getAttribute('aria-expanded') === 'true' && !$('#key-ctl').contains(e.target)) setKey(false); });
+  const whyBtn = $('#why-btn');
+  whyBtn.addEventListener('click', () => { const o = whyBtn.getAttribute('aria-expanded') !== 'true'; whyBtn.setAttribute('aria-expanded', o); $('#why').hidden = !o; });
+
+  /* ---------- forecast model (simulated) ---------- */
+  const MED = [6,7,8,9,11,12,14,17,20,24,27,29,28,26,22,19,16,14,12,10,8,7,6,5,5].map(v => v * .6); // mm/h, 06:00 → 06:00
+  const med = h => { const a = Math.max(0, Math.min(23, Math.floor(h))), t = h - a; return MED[a] + (MED[a + 1] - MED[a]) * t; };
+  const lo = h => med(h) * .62, hi = h => med(h) * 1.45;
+  const PEAK = Math.max(...MED);
+  const intensity = h => Math.max(0, Math.min(1, (med(h) - 4) / (PEAK - 4)));
+
+  /* ---------- rail forecast chart ---------- */
+  const rainSvg = $('#rain-chart');
+  const drawRain = () => {
+    const X0 = 8, X1 = 380, Y0 = 128, Y1 = 14, MAX = 30;
+    const x = h => X0 + (X1 - X0) * h / 24, y = v => Y0 - (Y0 - Y1) * v / MAX;
+    let s = '';
+    [0, 10, 20, 30].forEach(v => { s += `<path d="M${X0} ${y(v)}H${X1}" stroke="rgba(255,255,255,.06)"/><text x="${X1 + 8}" y="${y(v) + 4}">${v}</text>`; });
+    let up = '', dn = '';
+    for (let h = 0; h <= 24; h += .5) { up += `${x(h).toFixed(1)},${y(hi(h)).toFixed(1)} `; dn = `${x(h).toFixed(1)},${y(lo(h)).toFixed(1)} ` + dn; }
+    s += `<polygon points="${up}${dn}" fill="rgba(255,255,255,.12)"/>`;
+    // landslide-watch exceedance band
+    for (let h = 0; h < 24; h += .5) if (med(h) >= 15) s += `<rect x="${x(h)}" y="${Y1}" width="${x(.5) - X0 + .2}" height="${Y0 - Y1}" fill="rgba(240,160,75,.07)"/>`;
+    s += `<path d="M${X0} ${y(15)}H${X1}" stroke="#f0a04b" stroke-dasharray="5 4" stroke-width="1.2"/>`;
+    let d = ''; for (let h = 0; h <= 24; h += .25) d += (d ? 'L' : 'M') + x(h).toFixed(1) + ' ' + y(med(h)).toFixed(1);
+    s += `<path d="${d}" fill="none" stroke="rgba(242,244,242,.9)" stroke-dasharray="4 3" stroke-width="1.3"/>`;
+    // observed so far
+    let o = ''; for (let h = 0; h <= S.now; h += .1) o += (o ? 'L' : 'M') + x(h).toFixed(1) + ' ' + y(med(h) * (1 + .12 * Math.sin(h * 9))).toFixed(1);
+    if (o) s += `<path d="${o}" fill="none" stroke="#f2f4f2" stroke-width="1.6"/>`;
+    const nx = x(S.now); s += `<path d="M${nx} ${Y1 - 4}V${Y0}" stroke="rgba(255,255,255,.35)"/><text x="${nx + 4}" y="${Y1 + 4}">Now</text>`;
+    if (Math.abs(S.preview - S.now) > .2) { const px = x(S.preview); s += `<path d="M${px} ${Y1}V${Y0}" stroke="#f2f4f2" stroke-width="1.2"/><circle cx="${px}" cy="${y(med(S.preview))}" r="3.5" fill="#f2f4f2"/>`; }
+    ['06:00', '12:00', '18:00', '00:00', '06:00'].forEach((l, k) => s += `<text x="${x(k * 6) - (k ? (k === 4 ? 26 : 14) : 0)}" y="146">${l}</text>`);
+    s += `<text x="${X1 + 8}" y="${Y1 - 10}" style="font-size:10px">mm/h</text>`;   // unit sits a line above the top tick, never on it
+    rainSvg.innerHTML = s;
+    // hover or arrow keys: the forecast every 30 min with its likely range, plus what has been observed so far
+    window.RO_MOTION?.scrub(rainSvg, { n: 49, x: i => x(i / 2), top: Y1, bottom: Y0, start: Math.round(S.now * 2),
+      label: i => `${fmt(i / 2)}${i / 2 <= S.now ? ' · observed' : ' · forecast'}`,
+      rows: i => { const h = i / 2, r = [{ name: 'Forecast', value: `${med(h).toFixed(1)} mm/h`, y: y(med(h)), color: 'rgba(242,244,242,.9)', dash: 1 },
+        { name: 'Likely range', value: `${lo(h).toFixed(0)}–${hi(h).toFixed(0)}` }];
+        if (h <= S.now) r.unshift({ name: 'Observed', value: `${(med(h) * (1 + .12 * Math.sin(h * 9))).toFixed(1)} mm/h`, y: y(med(h) * (1 + .12 * Math.sin(h * 9))), color: '#f2f4f2' });
+        return r; },
+      note: i => med(i / 2) >= 15 ? 'Above landslide watch, 15 mm/h' : '' });
+  };
+
+  /* ---------- 24 h outlook timeline ---------- */
+  const tlSvg = $('#tl-svg');
+  const DEADLINES = [[3, 'Road check'], [4, 'Rescue standby'], [6, 'Camp ready']];
+  const drawTL = () => {
+    // draw at the card's real width (1 unit = 1px) so the chart always runs edge to edge, never letterboxed
+    const W = Math.round(tlSvg.getBoundingClientRect().width) || 480;
+    tlSvg.setAttribute('viewBox', `0 0 ${W} 120`);
+    const X0 = 1, X1 = W - 1, Y0 = 70, Y1 = 22, MAX = 30, TR = 84;
+    const x = h => X0 + (X1 - X0) * h / 24, y = v => Y0 - (Y0 - Y1) * v / MAX;
+    let s = '';
+    let up = '', dn = '';
+    for (let h = 0; h <= 24; h += .5) { up += `${x(h).toFixed(1)},${y(hi(h)).toFixed(1)} `; dn = `${x(h).toFixed(1)},${y(lo(h)).toFixed(1)} ` + dn; }
+    s += `<polygon points="${up}${dn}" fill="rgba(255,255,255,.1)"/>`;
+    let d = ''; for (let h = 0; h <= 24; h += .25) d += (d ? 'L' : 'M') + x(h).toFixed(1) + ' ' + y(med(h)).toFixed(1);
+    s += `<path d="${d}" fill="none" stroke="rgba(242,244,242,.85)" stroke-dasharray="4 3" stroke-width="1.2"/>`;
+    // risk track
+    s += `<rect x="${X0}" y="${TR}" width="${X1 - X0}" height="6" rx="3" fill="rgba(255,255,255,.12)"/>`;
+    s += `<rect x="${x(6)}" y="${TR}" width="${x(18) - x(6)}" height="6" rx="3" fill="rgba(240,160,75,.7)"/>`;
+    s += `<rect x="${x(9)}" y="${TR}" width="${x(15) - x(9)}" height="6" rx="3" fill="#ff6b5f"/>`;
+    s += `<text x="${x(9) + 2}" y="${TR - 4}" style="fill:#ffb3ab">Peak 15:00–21:00</text><text class="amber" x="${x(15) + 4}" y="${TR - 4}">Risk window to 00:00</text>`;
+    // ready-by line + deadlines
+    s += `<path d="M${x(6)} 12V${TR}" stroke="#f0a04b" stroke-dasharray="3 3"/><text class="amber" x="${x(6) + 4}" y="10">Ready by 12:00</text>`;
+    DEADLINES.forEach(([h, l]) => { s += `<circle cx="${x(h)}" cy="${Y0 + 4}" r="3" fill="${S.approved && S.now >= h ? '#7bd88f' : '#f2f4f2'}"/>`; });
+    // now
+    const nx = x(S.now); s += `<path d="M${nx} 14V${TR + 6}" stroke="rgba(255,255,255,.45)"/><text x="${nx + 4}" y="20">Now ${fmt(S.now)}</text>`;
+    // preview cursor
+    const px = x(S.preview); s += `<path d="M${px} 12V${TR + 6}" stroke="#f2f4f2" stroke-width="1.2"/>`;
+    // axis
+    ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '00:00', '03:00', '06:00'].forEach((l, k) => s += `<text x="${k === 0 ? X0 - 1 : k === 8 ? X1 + 1 : x(k * 3)}" y="116" text-anchor="${k === 0 ? 'start' : k === 8 ? 'end' : 'middle'}">${l}</text>`);
+    tlSvg.innerHTML = s;
+  };
+
+  /* ---------- capacity check: aligned rows + fix actions; each gap closes through a reviewed request ---------- */
+  // states: short → requested (sent, waiting for the agency) → ok (confirmed). Water closes when the camp task is done.
+  const CAP = [
+    { id: 'water', n: 'Water', long: 'drinking water at Meppadi camp', have: 14, need: 48, u: ' h', fix: 'task' },
+    { id: 'rescue', n: 'Rescue', long: 'rescue teams', have: 4, need: 6, fix: 'ksdma' },
+    { id: 'exc', n: 'Excavators', long: 'excavators', have: 2, need: 3, fix: 'pwd' },
+    { id: 'beds', n: 'Camp beds', long: 'camp beds', have: 1800, need: 2400, fix: 'beds' },
+    { id: 'amb', n: 'Ambulance', long: 'ambulances', have: 5, need: 5 }
+  ];
+  // AI-drafted requests behind the Fix buttons (and the KSDMA draft in the plan panel)
+  const DRAFT = {
+    ksdma: { cap: 'rescue', row: 'draft-ksdma', title: 'KSDMA standby request', to: 'KSDMA · State EOC', what: '2 SDRF teams on standby at Meppadi', qty: '2 teams with landslide rescue kit', by: '12:00 today',
+      why: 'Rescue capacity is 4 of 6 teams for the Meppadi critical zone. Peak landslide risk is 15:00–21:00.', sent: 'SDRF standby requested from KSDMA', reply: 'KSDMA confirmed 2 SDRF teams on standby at Meppadi', who: 'KSDMA State EOC', short: '2 SDRF' },
+    pwd: { cap: 'exc', title: 'PWD excavator request', to: 'PWD Wayanad', what: 'One more excavator at Meppadi junction', qty: '1 excavator with operator', by: '12:00 today',
+      why: '2 of 3 excavators are confirmed. The km 7 road is the only way into the critical zone.', sent: 'Excavator requested from PWD', reply: 'PWD confirmed Excavator 5 for Meppadi junction', who: 'PWD Wayanad', short: '+1 excavator' },
+    beds: { cap: 'beds', title: 'Partner request: camp beds', to: 'Relief partners', what: '600 camp beds for the Meppadi and Vythiri camps', qty: '600 beds', by: '18:00 today',
+      why: '1.8k of 2.4k beds are confirmed at the expected occupancy across 5 camps.', sent: 'Camp beds requested from relief partners', reply: 'Relief partner B confirmed 600 beds by 16:00', who: 'Relief partner B', short: '+600 beds' }
+  };
+  const capSt = Object.assign({}, window.RO_STATE?.get('prep.cap') || {});
+  const capOf = i => capSt[i.id] || (i.have >= i.need ? 'ok' : 'short');
+  const kfmt = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+  const warnI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z" fill="currentColor"/></svg>';
+  const okI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>';
+  const clockI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const capFlash = el => { if (reduce || !el) return; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); };
+  function capSync(changed) {
+    // the camp task carries water: approved → requested, done → ok
+    const t3 = document.getElementById('t3');
+    if (t3) capSt.water = t3.dataset.inc ? (S.now >= 6 ? 'ok' : 'requested') : 'short';
+    window.RO_STATE?.set('prep.cap', capSt);
+    const gaps = CAP.filter(i => capOf(i) !== 'ok').length;
+    $('#cap-gaps').textContent = gaps; $('#cap-gaps-sr').textContent = `${gaps} capacity gap${gaps === 1 ? '' : 's'}`;
+    $('#cap-k').textContent = gaps ? 'to close before 12:00' : 'all confirmed before 12:00';
+    $('#cap-rows').innerHTML = CAP.map(i => {
+      const st = capOf(i), d = Object.values(DRAFT).find(x => x.cap === i.id);
+      const have = st === 'ok' ? i.need : i.have, v = `${kfmt(have)}/${kfmt(i.need)}${i.u || ''}`;
+      const txt = st === 'ok' ? (i.have >= i.need ? 'Ready' : 'Confirmed') : st === 'requested' ? (i.fix === 'task' ? 'Stocking' : 'Requested') : `${kfmt(i.need - i.have)}${i.u || ''} short`;
+      return `<li class="${st === 'ok' ? 'ok' : st === 'requested' ? 'req' : 'gap'}" id="cap-${i.id}">
+        <span class="nm">${i.n}</span>
+        <span class="trk" style="--r:${(Math.min(1, have / i.need) * 100).toFixed(1)}%" aria-hidden="true"><i></i></span>
+        <span class="val"><span aria-hidden="true">${v}</span><span class="sr-only">${v.replace('/', ' of ')}</span></span>
+        <span class="st">${st === 'ok' ? okI : st === 'requested' ? clockI : warnI}${txt}</span>
+        <span>${st === 'short' ? `<button type="button" class="cap-fix" data-fix="${i.id}" aria-label="Fix: ${i.long}, ${txt}">Fix →</button>` : ''}</span>
+      </li>`;
+    }).join('');
+    // the KSDMA draft row in the plan panel shows where its request has got to
+    const row = $('#draft-ksdma'), rs = capOf(CAP[1]);
+    if (row && rs !== 'short') row.lastElementChild.outerHTML = rs === 'ok' ? '<span class="chip ok">Confirmed</span>' : '<span class="chip warn">Sent · waiting</span>';
+    if (changed) capFlash($('#cap-' + changed));
+  }
+  // review → approve → sent → the agency confirms a moment later
+  const sendDraft = key => {
+    const d = DRAFT[key];
+    window.RO_REVIEW ? RO_REVIEW.open({ title: d.title, sub: `To ${d.to} · AI drafted from the capacity check · ${fmt(S.now)}`, phase: 'prepare',
+      ai: '<b>Preparedness Agent draft · review before sending.</b> Nothing goes out until it is approved.',
+      fields: [['What is needed', d.what], ['How much', d.qty], ['Needed by', d.by], ['Why', RO_AI.esc(d.why)]],
+      approve: `Approve and send to ${d.to.split(' · ')[0]}`, cancel: 'Not now',
+      onApprove: () => {
+        const at = fmt(S.now); capSt[d.cap] = 'requested'; capSync(d.cap);
+        toast(`${d.sent} · approved by Ananya Menon at ${at}`);
+        window.RO_STATE?.add({ id: 'lv-' + key + '-sent', day: 0, t: at, phase: 'prepare', kind: 'decision', title: d.sent, detail: `${d.what}. Approved by Ananya Menon.`, actor: 'Ananya Menon', who: 'human', src: 'Capacity check · request record', verify: 'verified' });
+        setTimeout(() => {
+          capSt[d.cap] = 'ok'; capSync(d.cap); toast(d.reply);
+          window.RO_STATE?.add({ id: 'lv-' + key + '-ok', day: 0, t: at, phase: 'prepare', kind: 'dispatch', title: d.reply, detail: '', actor: d.who, who: 'agency', src: 'Agency confirmation', verify: 'verified' });
+        }, reduce ? 600 : 2400);
+      } }) : toast(`${d.title} — draft opens for review`);
+  };
+  capSync();
+  $('#cap-rows').addEventListener('click', e => {
+    const btn = e.target.closest('[data-fix]'); if (!btn) return;
+    const it = CAP.find(x => x.id === btn.dataset.fix);
+    if (it.fix !== 'task') return sendDraft(it.fix);
+    setPlan(true);
+    const task = document.getElementById('t3'), more = task.querySelector('.task-more');
+    if (more.getAttribute('aria-expanded') !== 'true') more.click();
+    task.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }); capFlash(task);
+    more.focus({ preventScroll: true });
+  });
+  $('#draft-ksdma').addEventListener('click', e => { if (e.target.closest('button')) sendDraft('ksdma'); });
+
+  /* ---------- place cards ---------- */
+  const PROF = {
+    steep:  { pts: [[0,70],[18,64],[34,40],[52,22],[66,14],[80,20],[96,46],[112,58],[130,62],[150,52],[170,30],[190,24],[220,30]], risk: [9, 12], river: 120 },
+    plain:  { pts: [[0,52],[20,44],[40,40],[60,46],[80,58],[110,66],[140,66],[170,58],[196,44],[220,38]], risk: [7, 9], river: 120 },
+    banks:  { pts: [[0,40],[24,46],[50,56],[80,64],[110,68],[140,64],[166,54],[194,46],[220,42]], risk: [6, 8], river: 112 },
+    ridge:  { pts: [[0,60],[26,48],[52,36],[76,30],[100,36],[124,50],[150,56],[180,44],[220,36]], risk: [6, 8], river: 0 }
+  };
+  const profileSVG = (p, lvl, id) => {
+    const c = lvl === 'crit' ? '#ff6b5f' : lvl === 'warn' ? '#f0a04b' : '#b9c0bb';
+    const line = p.pts.map((q, i) => (i ? 'L' : 'M') + q.join(' ')).join('');
+    const seg = p.pts.slice(p.risk[0], p.risk[1] + 1);
+    const area = 'M' + seg[0][0] + ' 82 ' + seg.map(q => 'L' + q.join(' ')).join(' ') + ' L' + seg[seg.length - 1][0] + ' 82Z';
+    const houses = p.pts.filter((q, i) => i > 0 && i < p.pts.length - 1 && q[1] > 44).slice(0, 4).map(q => `<path d="M${q[0] - 5} ${q[1] - 1}v-6l5-4 5 4v6" />`).join('');
+    const river = p.river ? `<path d="M${p.river - 14} 76c5-3 9 3 14 0s9 3 14 0" opacity=".7"/>` : '';
+    return `<svg viewBox="0 0 220 84" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" aria-hidden="true">
+      <defs><pattern id="ph-${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V6" stroke="${c}" stroke-width="1.2"/></pattern></defs>
+      <path d="${area}" fill="url(#ph-${id})" stroke="none" opacity=".85"/>
+      <path d="${line}"/><path d="M0 82H220" opacity=".35"/>
+      <path d="${line}" transform="translate(0 8)" opacity=".25"/>
+      ${houses}${river}
+      <path d="${seg.map((q, i) => (i ? 'L' : 'M') + q.join(' ')).join('')}" stroke="${c}" stroke-width="1.8"/></svg>`;
+  };
+  const places = [
+    { id: 'meppadi', name: 'Meppadi', sub: 'Steep slopes · Vythiri taluk', lvl: 'crit', label: 'Critical', rank: 1, prof: 'steep', exp: '2.0–3.5k', feat: 'Slopes >30°', ready: [1, 5], win: [9, 15], ll: [11.512, 76.146], z: 13 },
+    { id: 'vythiri', name: 'Vythiri', sub: 'Flood plain · Vythiri taluk', lvl: 'warn', label: 'High', rank: 2, prof: 'plain', exp: '1.2–2.0k', feat: 'Flood plain', ready: [2, 4], win: [8, 14], ll: [11.552, 76.040], z: 13 },
+    { id: 'mananthavady', name: 'Mananthavady', sub: 'River banks · north Wayanad', lvl: 'warn', label: 'High', rank: 3, prof: 'banks', exp: '0.8–1.5k', feat: 'River banks', ready: [1, 3], win: [10, 17], ll: [11.802, 76.004], z: 12.5 },
+    { id: 'kalpetta', name: 'Kalpetta', sub: 'Hill roads · district HQ', lvl: 'neutral', label: 'Moderate', rank: 4, prof: 'ridge', exp: '0.3–0.6k', feat: 'Hill roads', ready: [0, 2], win: [11, 16], ll: [11.6085, 76.083], z: 13 }
+  ];
+  /* ---------- tasks ---------- */
+  const TASKS = [
+    { id: 't1', g: 'now', title: 'Inspect the Meppadi–Chooralmala road and slope at km 7', owner: 'PWD Meppadi', due: 3, why: 'Only access road into the critical zone; slope above it is >30°.', res: 'Inspection crew of 4, drone if available', proof: 'Photo + road status in the app' },
+    { id: 't2', g: 'now', title: 'Put Rescue Unit 2 on standby at Meppadi', owner: 'Fire & Rescue', due: 4, why: 'Nearest landslide-trained team is 40 min away at Kalpetta.', res: 'FR-02 with landslide kit', proof: 'Check-in at Meppadi staging point' },
+    { id: 't3', g: 'now', title: 'Ready Meppadi camp for 450 people with 48 h of water', owner: 'Relief cell', due: 6, why: 'Water stock covers about 14 h at expected occupancy.', res: '2,000 L water, 450 bedding sets', proof: 'Camp manager confirmation' },
+    { id: 't4', g: 'next', title: 'Stage Excavator 3 at Meppadi junction', owner: 'PWD', due: 6, why: 'Clearing debris on km 7 restores medical access.', res: 'JCB-03 + operator', proof: 'Check-in at junction' },
+    { id: 't5', g: 'next', title: 'Ambulance on standby at WIMS, Meppadi', owner: 'Health', due: 6, why: 'Hospital road may be cut during peak rain.', res: 'Ambulance 108-04', proof: 'Check-in at WIMS' }
+  ];
+  const AT_RISK = { title: 'Mananthavady camp generator — fuel not confirmed', owner: 'Approved yesterday · Taluk office', due: 'Due 10:00' };
+  const groups = [['now', 'Critical now', 'crit'], ['next', 'Due next', '']];
+  const tg = $('#task-groups');
+  const icon = {
+    now: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 20 10 8l4 6 3-4 4 10z"/></svg>',
+    next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    risk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 22 20H2z"/><path d="M12 10v4"/></svg>'
+  };
+  let html = '';
+  groups.forEach(([g, label, tone]) => {
+    const list = TASKS.filter(t => t.g === g);
+    html += `<div class="group"><div class="group-h">${icon[g]}${label} <span>(${list.length})</span></div>`;
+    list.forEach(t => {
+      html += `<div class="task ${tone}" id="${t.id}">
+        <div class="task-row">
+          <label class="check"><input type="checkbox" checked data-task="${t.id}" aria-label="Include: ${t.title}"><span></span></label>
+          <div><span class="task-title">${t.title}</span><span class="task-meta">${t.owner} · due ${fmt(t.due)}</span><span class="chip neutral" data-st>Awaiting approval</span></div>
+          <button class="task-more" type="button" aria-expanded="false" aria-controls="${t.id}-b" aria-label="Details for ${t.title}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        </div>
+        <div class="task-body" id="${t.id}-b" hidden><span><b>Why now</b> · ${t.why}</span><span><b>Resources</b> · ${t.res}</span><span><b>Done when</b> · ${t.proof}</span><span><button class="btn" type="button" style="height:32px;font-size:12px" data-act="edit-task" data-k="${t.id}">Edit task</button></span></div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="group"><div class="group-h">${icon.risk}At risk <span>(1)</span></div>
+    <div class="task warn"><div class="task-row" style="grid-template-columns:auto 1fr">
+      <span class="sev warn" aria-hidden="true">!</span>
+      <div><span class="task-title">${AT_RISK.title}</span><span class="task-meta">${AT_RISK.owner} · ${AT_RISK.due}</span>
+      <button class="btn" type="button" style="height:32px;font-size:12px;margin-top:8px" data-act="nudge">Nudge owner</button></div>
+    </div></div></div>`;
+  tg.innerHTML = html;
+
+  // the panel's actions: advisory review, task edits, nudges (shared review dialog; follows role permissions)
+  let ADV_ML = '', ADV = 'Red alert: extremely heavy rain is expected from 15:00 today. If you live on a steep slope or near the river in Meppadi, Vythiri or Mananthavady, move to your nearest relief camp before 14:00. Helpline 1077.';
+  const DUE = []; for (let h = 1; h <= 6; h += .5) DUE.push([h, fmt(h)]);
+  window.RO_ACT?.($('#plan'), {
+    advisory: () => ({ title: 'Public advisory', sub: `Malayalam + English · 3 areas · drafted by the Communications Agent at 06:15`, phase: 'prepare',
+      ai: '<b>Communications Agent draft · review before sending.</b> The Malayalam version is translated from the English below and checked by the DEOC language officer before it goes out.',
+      fields: [['Channels', 'SMS, WhatsApp, panchayat loudspeakers, All India Radio Kozhikode'], ['Areas', 'Meppadi, Vythiri, Mananthavady · about 4,100 people'], ['Source', 'IMD red alert, 06:00'],
+        ...(ADV_ML ? [['Malayalam (to check)', `<span lang="ml">${RO_AI.esc(ADV_ML)}</span>`]] : [])],
+      edit: [{ id: 'txt', label: 'Message (English)', type: 'textarea', value: ADV }],
+      approve: 'Approve and send', chip: 'Sent',
+      done: () => `Public advisory sent at ${fmt(S.now)} to Meppadi, Vythiri and Mananthavady`,
+      log: { day: 0, t: fmt(S.now), phase: 'prepare', kind: 'message', title: 'Public advisory sent to 3 areas', detail: 'Malayalam and English · SMS, WhatsApp, loudspeakers, radio.' } }),
+    'edit-task': b => { const t = TASKS.find(x => x.id === b.dataset.k);
+      return { title: 'Edit task', sub: t.title, phase: 'prepare', keep: true, approve: 'Save changes',
+        edit: [{ id: 'owner', label: 'Owner', type: 'text', value: t.owner }, { id: 'due', label: 'Due', type: 'select', value: t.due, options: DUE }, { id: 'res', label: 'Resources', type: 'text', value: t.res }],
+        done: v => `Task updated: ${t.title} · ${v.owner} · due ${fmt(+v.due)}`,
+        after: v => { t.owner = v.owner; t.due = +v.due; t.res = v.res;
+          const row = document.getElementById(t.id); row.querySelector('.task-meta').textContent = `${t.owner} · due ${fmt(t.due)}`;
+          row.querySelector('.task-body span:nth-child(2)').innerHTML = `<b>Resources</b> · ${t.res}`;
+          ppRefresh(); window.RO_STATE?.add({ id: `lv-edit-${t.id}-${Date.now().toString(36)}`, day: 0, t: fmt(S.now), phase: 'prepare', kind: 'decision', title: `Task edited: ${t.title}`, detail: `${t.owner} · due ${fmt(t.due)} · ${t.res}`, actor: 'Ananya Menon', who: 'human', src: 'Plan edit', verify: 'verified' }); } }; },
+    nudge: { direct: true, done: () => `Reminder sent to the Taluk office at ${fmt(S.now)} · fuel confirmation due 10:00`, toast: 'Reminder sent to the Taluk office' }
+  });
+  tg.addEventListener('click', e => {
+    const b = e.target.closest('.task-more'); if (!b) return;
+    const o = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', o); document.getElementById(b.getAttribute('aria-controls')).hidden = !o;
+  });
+  const selected = () => [...tg.querySelectorAll('input[data-task]:checked:not(:disabled)')].map(i => i.dataset.task);
+  const syncSel = () => {
+    const n = selected().length;
+    $('#sel-count').textContent = `${n} of ${TASKS.filter(t => !document.getElementById(t.id)?.dataset.inc).length} selected`;
+    const a = $('#approve'); a.textContent = n ? `Approve ${n} task${n > 1 ? 's' : ''}` : 'Select tasks'; a.disabled = !n;
+  };
+  tg.addEventListener('change', syncSel);
+
+  /* ---------- priority places: tiles that morph into a detail card (ported from the prepare/ component, 17 Oct 2026) ----------
+     The page stays the source of truth: rank, risk, exposure, risk windows, the clock and Meppadi's plan tasks come from here.
+     Extras the page didn't have (terrain, risk factors, shortfalls, unknowns) come from the component's places.js, aligned to these figures. */
+  const PX = {
+    meppadi: { hazard: 'Landslide and flash flood', households: '≈ 620–1,050 households',
+      alert: ['IMD', 'Red alert', 'Extremely heavy rain, 234.6 mm in 24 h'],
+      terrain: { ground: [[0, .18], [.1, .3], [.2, .62], [.3, .76], [.36, .73], [.45, .46], [.52, .33], [.6, .29], [.68, .38], [.78, .63], [.87, .67], [1, .61]], houses: [.08, .42, .5, .56, .84, .92], river: .55, zone: [.68, 1] },
+      factors: [['Rainfall', '235 mm', '234.6 mm in 24 h', .95, 'rain', .62], ['Slope', 'over 30°', 'over 30° above the road', .9, 'slope', .77], ['Past slides', '2019, 2024', '2019 Puthumala, 2024 Mundakkai', .95, 'history', .91],
+        ['Access', 'km 7 only', 'the km 7 road is the only way in', .8, 'road', .42], ['Exposure', 'line houses', 'estate line houses', .7, 'people', .16]],
+      capacity: [['Water', 14, 48, 'h'], ['Rescue teams', 4, 6, ''], ['Excavators', 2, 3, '']],
+      unknowns: ['No road-condition report from Chooralmala since 05:10', 'Rain gauge at Mundakkai offline since 04:30'], agent: 'Forecast & Impact Agent · Day 0 · 06:12' },
+    vythiri: { hazard: 'Dam-release flooding and ghat landslides', households: '≈ 380–620 households',
+      alert: ['IMD + KSEB', 'Orange alert', 'Very heavy rain; Banasura Sagar at orange level'],
+      terrain: { ground: [[0, .42], [.08, .48], [.18, .53], [.3, .43], [.42, .33], [.5, .28], [.6, .28], [.7, .33], [.82, .48], [.9, .56], [1, .63]], houses: [.24, .33, .46, .57], river: .53, zone: [.72, 1] },
+      factors: [['Dam release', 'Day 0 PM', 'shutters may open this afternoon', .85, 'dam', .07], ['Rainfall', '150 mm', '150 mm in 24 h', .7, 'rain', .7], ['Past floods', '2018', '2018 Padinjarathara flood', .8, 'history', .5],
+        ['Access', 'NH 766 ghat', 'NH 766 ghat, landslide-prone', .7, 'road', .9], ['Exposure', 'bank homes', 'riverbank homes, resorts', .55, 'people', .3]],
+      capacity: [['Camp places', 900, 2000, ''], ['Rescue boats', 2, 4, ''], ['Ghat road crews', 1, 2, '']],
+      unknowns: ['KSEB has not confirmed the shutter opening time', 'No traffic count for NH 766 tonight'], agent: 'Forecast & Impact Agent · Day 0 · 06:14',
+      tasks: [['V1', 'Warning', 'Warn households on the Panamaram riverbanks', 'Village officer, Vythiri', '07:30', 'done'], ['V2', 'Camp', 'Open relief camp at GHSS Vythiri', 'Panchayat secretary', '08:00', 'done'],
+        ['V3', 'Dam schedule', 'Get the Banasura release schedule from KSEB', 'DEOC liaison', '09:00', 'awaiting'], ['V4', 'Ghat crane', 'Stage a crane and tow truck at Lakkidi', 'Motor Vehicles Dept', '10:00', 'awaiting']] },
+    mananthavady: { hazard: 'Riverine flooding on the Kabini', households: '≈ 250–470 households',
+      alert: ['IMD + CWC', 'Orange alert', 'Kabini rising; 250 mm fell here in Aug 2019'],
+      terrain: { ground: [[0, .56], [.15, .5], [.3, .4], [.45, .3], [.52, .28], [.65, .32], [.75, .41], [.88, .5], [1, .56]], houses: [.1, .23, .37, .5], river: .47, zone: [.75, 1] },
+      factors: [['River level', 'near 2018', 'rising, 1.2 m below the 2018 mark', .75, 'river', .47], ['Rainfall', '160 mm', '160 mm in 24 h', .72, 'rain', .86], ['Past floods', '2018', '2018: bank homes washed away', .85, 'history', .67],
+        ['Hospital', 'near river', 'medical college near the river', .65, 'health', .1], ['Exposure', 'bank hamlets', 'tribal hamlets on the bank', .6, 'people', .28]],
+      capacity: [['Camp places', 700, 1500, ''], ['Rescue boats', 1, 3, ''], ['Ambulances', 4, 6, '']],
+      unknowns: ['Camp generator fuel not confirmed (Taluk office)', 'Kabini reservoir (Karnataka) release plan not shared', 'Bank-erosion survey is from 2023'], agent: 'Forecast & Impact Agent · Day 0 · 06:16',
+      tasks: [['N1', 'Camp', 'Ready GVHSS Mananthavady as a relief camp', 'Tahsildar, Mananthavady', '08:30', 'done'], ['N2', 'Boat team', 'Station a boat team at Payyampally', 'Fire & Rescue, Mananthavady', '10:00', 'awaiting'],
+        ['N3', 'Patients up', 'Move ground-floor patients up at the medical college', 'Superintendent, GMC Wayanad', '11:00', 'awaiting']] },
+    kalpetta: { hazard: 'Road-cut landslides near the DEOC', households: '≈ 90–190 households',
+      alert: ['IMD', 'Orange alert', 'Heavy to very heavy rain'],
+      terrain: { ground: [[0, .32], [.1, .42], [.2, .55], [.3, .6], [.42, .5], [.5, .4], [.6, .35], [.72, .43], [.82, .52], [1, .63]], houses: [.1, .47, .6], river: null, zone: [.6, 1] },
+      factors: [['Rainfall', '120 mm', '120 mm in 24 h', .55, 'rain', .92], ['Slope', 'fresh cuts', 'fresh cuts at the tunnel works', .6, 'slope', .76], ['Past floods', '2018', '2018 floods hit Kalpetta', .5, 'history', .42],
+        ['Access', 'to Meppadi', 'carries all traffic to Meppadi', .7, 'road', .6], ['Exposure', 'DEOC, offices', 'few homes, key offices', .35, 'people', .2]],
+      capacity: [['DEOC backup power', 48, 72, 'h'], ['Road crews', 2, 2, ''], ['Camp places', 400, 600, '']],
+      unknowns: ['Slope survey at the tunnel works is out of date'], agent: 'Forecast & Impact Agent · Day 0 · 06:18',
+      tasks: [['K1', 'Slope check', 'Inspect cut slopes on the Kalpetta–Meppadi road', 'PWD Roads', '11:00', 'awaiting'], ['K2', 'EOC fuel', 'Fuel the DEOC backup generator for 72 h', 'Collectorate admin', '12:00', 'awaiting']] }
+  };
+  Object.values(PX).forEach(x => { if (x.tasks) x.tasks = x.tasks.map(([id, short, title, owner, due, status]) => ({ id, short, title, owner, due, status })); });
+  // Meppadi's tasks ARE the plan panel's tasks: one state, two views
+  const SHORT_T = { t1: 'Road check', t2: 'Rescue', t3: 'Camp water', t4: 'Excavator', t5: 'Ambulance' };
+  const planStatus = t => { const row = document.getElementById(t.id); return row && row.dataset.inc ? (S.now >= t.due ? 'done' : 'approved') : 'awaiting'; };
+  const ppTasks = p => p.id === 'meppadi' ? TASKS.map(t => ({ id: t.id, short: SHORT_T[t.id], title: t.title, owner: t.owner, due: fmt(t.due), status: planStatus(t) })) : PX[p.id].tasks;
+  const isReady = t => t.status !== 'awaiting';
+  const minOf = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const hm = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const nowMin = () => 6 * 60 + Math.round(S.now * 60);
+  const rainMin = p => (6 + p.win[0]) * 60;
+  const PPC = { crit: 'var(--critical)', warn: 'var(--warning)', neutral: '#b9c0bb' };
+  const BAND = s => s >= .85 ? 'severe' : s >= .65 ? 'high' : 'moderate';
+  const BANDW = { severe: 'Severe', high: 'High', moderate: 'Moderate' };
+  const PPI = {
+    rain: '<path d="M-4.6 1.4h8.2a3.3 3.3 0 0 0 .3-6.6 4.4 4.4 0 0 0-8.4.9 2.9 2.9 0 0 0-.1 5.7Z"/><path d="M-3 4.4l-1 2.4M.6 4.4l-1 2.4M4.2 4.4l-1 2.4"/>',
+    slope: '<path d="M-7 6h14L-1.6-5Z"/><path d="M2.4 1.4l2.2 1.6M.6-1.2l2 1.4"/>',
+    history: '<path d="M-5.6-1.4A6 6 0 1 1-4.2 3.8"/><path d="M-6.4-4.6v3.4h3.4M0-3v3.4l2.4 1.4"/>',
+    road: '<path d="M-3.4-7.2-6.2 7M3.4-7.2 6.2 7"/><path d="M0-6v2.2M0-1.1v2.2M0 3.8V6"/>',
+    people: '<circle cx="-1.6" cy="-2.6" r="2.6"/><path d="M-6.4 6c.5-2.8 2.4-4.4 4.8-4.4S2.7 3.2 3.2 6M3.4-5a2.6 2.6 0 0 1 0 4.8M4.8 1.8c1.3.6 2 1.8 2.2 4.2"/>',
+    dam: '<path d="M-6-5h12M-4.8-5-6.4 6h12.8L4.8-5"/><path d="M-2.4.4h4.8M-3 3.4h6"/>',
+    river: '<path d="M-6.4-2.6q1.6-2 3.2 0t3.2 0 3.2 0 3.2 0M-6.4 2.4q1.6-2 3.2 0t3.2 0 3.2 0 3.2 0"/>',
+    health: '<rect x="-6" y="-6" width="12" height="12" rx="3"/><path d="M0-3.2v6.4M-3.2 0h6.4"/>'
+  };
+  const ppSurf = (g, x) => { for (let i = 1; i < g.length; i++) { const [x0, y0] = g[i - 1], [x1, y1] = g[i]; if (x <= x1) return y0 + (y1 - y0) * (x - x0) / (x1 - x0 || 1); } return g[g.length - 1][1]; };
+  const f1 = n => n.toFixed(1);
+  const ppSmooth = pts => { let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+    for (let i = 0; i < pts.length - 1; i++) { const a = pts[i - 1] || pts[i], b = pts[i], c = pts[i + 1], e = pts[i + 2] || c;
+      d += `C${f1(b[0] + (c[0] - a[0]) / 6)} ${f1(b[1] + (c[1] - a[1]) / 6)} ${f1(c[0] - (e[0] - b[0]) / 6)} ${f1(c[1] - (e[1] - b[1]) / 6)} ${f1(c[0])} ${f1(c[1])}`; } return d; };
+  // the tile's sketch, or (detail) the same landscape full width with each risk factor pinned where it happens
+  const ppTerrain = (p, width, height, detail) => {
+    const T = PX[p.id].terrain, col = PPC[p.lvl], top = detail ? 96 : 8, base = height - (detail ? 4 : 6), span = base - top;
+    const P = (x, y) => [x * width, base - y * span], id = `pp-${p.id}-${detail ? 'd' : 't'}`;
+    const surf = T.ground.map(([x, y]) => P(x, y)), under = T.ground.map(([x, y]) => P(x, Math.max(0, y - .07)));
+    const [z0, z1] = T.zone, zp = []; for (let i = 0; i <= 24; i++) { const x = z0 + (z1 - z0) * i / 24; zp.push(P(x, ppSurf(T.ground, x))); }
+    let s = `<defs><pattern id="${id}-h" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="${col}" stroke-width="1.2" opacity=".7"/></pattern>
+      <linearGradient id="${id}-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f4f2" stop-opacity=".07"/><stop offset="1" stop-color="#f2f4f2" stop-opacity="0"/></linearGradient>
+      <filter id="${id}-g" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter></defs>
+      <path d="${ppSmooth(surf)}L${width} ${base}L0 ${base}Z" fill="url(#${id}-f)"/><line x1="0" x2="${width}" y1="${base}" y2="${base}" class="pp-base"/>
+      <path d="${ppSmooth(under)}" class="pp-under"/>
+      <path d="M${zp.map(q => q.map(f1).join(' ')).join('L')}L${f1(z1 * width)} ${base}L${f1(z0 * width)} ${base}Z" fill="url(#${id}-h)"/>`;
+    if (detail) { const rf = PX[p.id].factors.find(f => f[4] === 'rain'), n = Math.round(8 + 20 * (rf ? rf[3] : .5)), from = Math.max(0, z0 - .18), dr = [];
+      for (let i = 0; i < n; i++) { const fx = from + (1 - from) * (i + .5) / n, y = Math.max(top - 8, P(fx, ppSurf(T.ground, fx))[1] - 40 + ((i * 7) % 4) * 6); dr.push(`M${f1(fx * width)} ${f1(y)}l-3 9`); }
+      s += `<g class="pp-rain-g"><path d="${dr.join('')}" class="pp-rain" stroke="${col}"/></g>`; }
+    s += `<path d="${ppSmooth(surf)}" class="pp-surface"/><path d="${ppSmooth(zp)}" class="pp-zone" stroke="${col}"/>`;
+    if (T.river != null) { const [rx, ry] = P(T.river, ppSurf(T.ground, T.river)), w = detail ? 30 : 20;
+      s += `<path d="M${rx - w / 2} ${ry + 8}q${w / 8} -3 ${w / 4} 0t${w / 4} 0 ${w / 4} 0 ${w / 4} 0" class="pp-river"/>`; }
+    T.houses.forEach(x => { const [hx, hy] = P(x, ppSurf(T.ground, x)); s += `<path transform="translate(${f1(hx)} ${f1(hy - 2)}) scale(${detail ? 1.1 : .9})" d="M-6 0v-8l6-5 6 5v8" class="pp-house"/>`; });
+    if (detail) [...PX[p.id].factors].sort((a, b) => a[5] - b[5]).forEach(([lab, short, val, sc, ic, at], i) => {
+      const band = BAND(sc), [mx, my] = P(at, ppSurf(T.ground, at)), row = i % 2, cy = row ? Math.min(112, my - 30) : 46, ly = cy - 30;   // two rows; a lower-row pin rises to stay above the ground
+      const an = at < .1 ? 'start' : at > .9 ? 'end' : 'middle', tx = an === 'start' ? Math.max(2, mx - 12) : an === 'end' ? Math.min(width - 2, mx + 12) : mx;
+      s += `<g class="pp-pin" data-band="${band}" style="--i:${i}"><title>${lab}: ${val} (${BANDW[band]})</title><line class="pp-tick" x1="${f1(mx)}" x2="${f1(mx)}" y1="${cy + 11}" y2="${f1(Math.max(cy + 11, my - 6))}"/>
+        ${band === 'severe' ? `<circle class="pp-pin-glow" cx="${f1(mx)}" cy="${cy}" r="11" filter="url(#${id}-g)"/>` : ''}
+        <g transform="translate(${f1(mx)} ${cy})"><circle r="11" class="pp-pin-bg"/><g class="pp-pin-ico" transform="scale(.78)">${PPI[ic]}</g></g>
+        <text class="pp-pin-name" x="${f1(tx)}" y="${ly}" text-anchor="${an}">${lab}</text><text class="pp-pin-val" x="${f1(tx)}" y="${ly + 15}" text-anchor="${an}">${short}</text></g>`; });
+    const lbl = detail ? `${p.name}: ${PX[p.id].factors.map(f => `${f[0]} ${f[2]}, ${BANDW[BAND(f[3])]}`).join('; ')}.` : `${p.name} terrain sketch`;
+    return `<svg class="pp-terrain" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMax meet" role="img" aria-label="${lbl}">${s}</svg>`;
+  };
+  const PPL = { // small UI glyphs
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    check: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.6 10.4 8.6 13.4 14.6 7"/></svg>',
+    clock: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 6v4.4l2.8 1.7"/></svg>',
+    severe: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6 22 20.4H2Z" fill="currentColor"/><path d="M12 9.5v5M12 17.2v.1" stroke="var(--card)" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    short: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>',
+    unknown: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.6 2.3c-.8.5-1.2 1-1.2 1.9M12 16.8v.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><path d="M16 5.5a3 3 0 0 1 0 5M18 14c2 .8 3 2.8 3 6"/></svg>'
+  };
+  const STXT = { done: 'Done', approved: 'Approved', awaiting: 'Needs approval' };
+  const pp = { stage: $('#places'), grid: $('#pp-grid'), open: null, busy: false, sel: null };
+  const ppPlace = id => places.find(p => p.id === id);
+  const segsOf = ts => ts.map(t => `<i class="${isReady(t) ? 'on' : ''}"></i>`).join('');
+  const ppTile = p => { const ts = ppTasks(p), r = ts.filter(isReady).length;
+    return `<button type="button" class="card team place" id="place-${p.id}" data-id="${p.id}" aria-label="Priority ${p.rank}: ${p.name}, ${p.label} risk. ${p.exp} people may be exposed. Readiness ${r} of ${ts.length}. Open details">
+      <div class="card-h"><div><h3><b class="rank ${p.lvl}" aria-hidden="true">${p.rank}</b>${p.name}</h3><p class="when">${p.sub}</p></div>
+        <span class="open" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg></span></div>
+      <div class="pp-art">${ppTerrain(p, 380, 120, false)}</div>
+      <div class="team-meta"><span class="chip ${p.lvl}">${p.label} risk</span><span class="stats"><span>${PPL.people}${p.exp}</span></span></div>
+      <div class="ready-row"><span>Readiness ${r} of ${ts.length}</span><span class="segs" aria-hidden="true">${segsOf(ts)}</span></div></button>`; };
+  const ppGrid = () => { pp.grid.innerHTML = places.map(ppTile).join(''); };
+  const ppFocus = (p, t) => !t ? `<div class="pp-focus" data-status="done"><span class="f-ico">${PPL.check}</span><span class="f-text"><b>All ${ppTasks(p).length} tasks ready</b></span></div>`
+    : `<div class="pp-focus" data-status="${t.status}" aria-live="polite"><span class="f-ico">${isReady(t) ? PPL.check : PPL.clock}</span>
+      <span class="f-text"><b title="${t.title}">${t.title}</b><span class="muted">${t.owner} · due ${t.due}</span></span>
+      ${t.status === 'awaiting' ? `<button class="btn primary pp-sm" type="button" data-approve="${t.id}">Approve</button>` : `<span class="f-state">${STXT[t.status]}</span>`}</div>`;
+  // the parts that change with approvals: the ready count, Approve all, and the plan (runway + selected task)
+  const ppReady = p => { const ts = ppTasks(p), r = ts.filter(isReady).length; return `<span class="ready${r ? '' : ' zero'}" data-pp-ready>${r}/${ts.length} ready</span>`; };
+  const ppAll = p => { const n = ppTasks(p).filter(t => t.status === 'awaiting').length;
+    return `<span data-pp-all>${n > 1 ? `<button class="btn pp-sm" type="button" data-approve-all>Approve all ${n}</button>` : ''}</span>`; };
+  const ppPlan = p => { const ts = ppTasks(p), t = ts.find(x => x.id === pp.sel) || ts.find(x => x.status === 'awaiting') || null;
+    return `<div class="pp-plan">${ppFocus(p, t)}</div>`; };
+  const ppDetail = p => `<section class="pp-detail" data-lvl="${p.lvl}" role="region" aria-labelledby="ppd-${p.id}">
+      <header class="pp-head"><div class="pp-top"><h2 id="ppd-${p.id}"><b class="rank ${p.lvl}" aria-hidden="true">${p.rank}</b>${p.name}</h2>
+        <div class="pp-tools">${ppAll(p)}<button class="pp-close" type="button" aria-label="Close ${p.name} details">${PPL.close}</button></div></div>
+        <p class="pp-line"><span class="risk">${PPL.severe}${p.label} risk</span><span class="ppl">${PPL.people}<b>${p.exp}</b> people</span>${ppReady(p)}<a class="pp-why" href="?view=risk&place=${p.id}">Why ${p.label === 'Critical' ? 'critical' : p.label.toLowerCase() + ' risk'}?</a></p></header>
+      <figure class="pp-land"></figure>
+      ${ppPlan(p)}</section>`;
+  // ---- morph: the tile grows into the card in place (clip-path + stage height), and shrinks back ----
+  const ppMs = n => reduce ? 0 : n, PPE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const clipFor = (r, w, h) => `inset(${r.y}px ${w - r.x - r.w}px ${h - r.y - r.h}px ${r.x}px round 26px)`;
+  const ppOpen = id => {
+    if (pp.busy || pp.open) return; const p = ppPlace(id), tile = pp.grid.querySelector(`[data-id="${id}"]`); if (!p || !tile) return;
+    pp.busy = true; pp.open = id; pp.sel = (ppTasks(p).find(t => t.status === 'awaiting') || {}).id || null;
+    reduce ? map.setView(p.ll, p.z) : map.flyTo(p.ll, p.z, { duration: .8 });
+    const box = pp.stage.getBoundingClientRect(), t = tile.getBoundingClientRect(), from = { x: t.left - box.left, y: t.top - box.top, w: t.width, h: t.height }, gridH = box.height;
+    const holder = document.createElement('div'); holder.innerHTML = ppDetail(p); const d = holder.firstElementChild;
+    d.style.position = 'absolute'; d.style.inset = '0 0 auto 0'; d.style.height = gridH + 'px'; if (!reduce) d.classList.add('pre');   // never taller than the grid
+    pp.stage.style.height = gridH + 'px'; pp.stage.appendChild(d); const dH = gridH;
+    const land = d.querySelector('.pp-land'); land.innerHTML = ppTerrain(p, Math.round(land.clientWidth), Math.max(120, Math.round(land.clientHeight)), true);   // drawn at its real size so text stays 1:1
+    const tiles = [...pp.grid.children];
+    tiles.forEach(el => el.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: el === tile ? 'scale(1)' : 'scale(.96)' }], { duration: ppMs(220), easing: 'ease-out', fill: 'forwards' }));
+    pp.stage.animate([{ height: gridH + 'px' }, { height: dH + 'px' }], { duration: ppMs(480), easing: PPE, fill: 'forwards' });
+    const grow = d.animate([{ clipPath: clipFor(from, box.width, dH) }, { clipPath: clipFor({ x: 0, y: 0, w: box.width, h: dH }, box.width, dH) }], { duration: ppMs(480), easing: PPE, fill: 'forwards' });
+    d.querySelectorAll('.pp-head, .pp-land, .pp-plan').forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: ppMs(300), delay: ppMs(160 + i * 60), easing: PPE, fill: 'backwards' }));
+    setTimeout(() => d.classList.remove('pre'), ppMs(300));
+    let fin = false;
+    const done = () => { if (fin) return; fin = true; pp.stage.getAnimations().forEach(a => a.cancel()); grow.cancel(); tiles.forEach(el => el.getAnimations().forEach(a => a.cancel()));
+      d.style.position = ''; d.style.inset = ''; pp.stage.style.height = ''; pp.grid.hidden = true; pp.busy = false;
+      d.querySelector('.pp-close').focus({ preventScroll: true }); };
+    if (reduce) done(); else { grow.finished.then(done); setTimeout(done, ppMs(480) + 120); }   // fallback if frames are paused
+  };
+  const ppClose = () => {
+    if (pp.busy || !pp.open) return; const id = pp.open, d = pp.stage.querySelector('.pp-detail'); pp.busy = true;
+    const dH = d.offsetHeight; pp.stage.style.height = dH + 'px'; d.style.position = 'absolute'; d.style.inset = '0 0 auto 0';
+    pp.grid.hidden = false; ppGrid(); const tiles = [...pp.grid.children]; tiles.forEach(el => { el.style.opacity = '0'; });
+    const box = pp.stage.getBoundingClientRect(), gridH = pp.grid.offsetHeight, tile = pp.grid.querySelector(`[data-id="${id}"]`), t = tile.getBoundingClientRect(), to = { x: t.left - box.left, y: t.top - box.top, w: t.width, h: t.height };
+    d.querySelectorAll('.pp-head, .pp-land, .pp-plan').forEach(el => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ppMs(160), easing: 'ease-out', fill: 'forwards' }));
+    pp.stage.animate([{ height: dH + 'px' }, { height: gridH + 'px' }], { duration: ppMs(440), easing: PPE, fill: 'forwards' });
+    const shrink = d.animate([{ clipPath: clipFor({ x: 0, y: 0, w: box.width, h: dH }, box.width, dH) }, { clipPath: clipFor(to, box.width, dH) }], { duration: ppMs(440), easing: PPE, fill: 'forwards' });
+    tiles.forEach(el => { el.style.opacity = ''; el.animate([{ opacity: 0, transform: el === tile ? 'none' : 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: ppMs(260), delay: ppMs(el === tile ? 320 : 220), easing: PPE, fill: 'backwards' }); });
+    let fin = false;
+    const done = () => { if (fin) return; fin = true; d.remove(); pp.stage.getAnimations().forEach(a => a.cancel()); pp.stage.style.height = ''; pp.open = null; pp.busy = false;
+      pp.grid.querySelector(`[data-id="${id}"]`)?.focus({ preventScroll: true }); };
+    if (reduce) done(); else { shrink.finished.then(done); setTimeout(done, ppMs(440) + 120); }
+  };
+  // re-render the plan block after a selection, an approval or a clock tick
+  let ppSig = '';
+  const ppRefresh = focusSel => {
+    const sig = nowMin() + '|' + places.map(p => ppTasks(p).map(t => t.status).join()).join('|') + '|' + pp.sel;
+    if (!focusSel && sig === ppSig) return;   // the demo ticks every frame: only redraw when the minute or a status changes
+    ppSig = sig;
+    if (!pp.open) { if (!pp.grid.hidden) ppGrid(); return; }
+    const d = pp.stage.querySelector('.pp-detail'); if (!d || pp.busy) return;
+    const p = ppPlace(pp.open), swap = (sel, html) => { const h = document.createElement('div'); h.innerHTML = html; d.querySelector(sel).replaceWith(h.firstElementChild); };
+    swap('.pp-plan', ppPlan(p)); swap('[data-pp-ready]', ppReady(p)); swap('[data-pp-all]', ppAll(p));
+    if (focusSel) (d.querySelector(focusSel) || d.querySelector('.pp-close')).focus({ preventScroll: true });
+  };
+  const ppApprove = ids => {
+    const p = ppPlace(pp.open); if (!p) return;
+    if (p.id === 'meppadi') approveIds(ids);   // same tasks as the plan panel: approving here approves them there
+    else { PX[p.id].tasks.filter(t => ids.includes(t.id) && t.status === 'awaiting').forEach(t => { t.status = 'approved'; });
+      toast(ids.length === 1 ? `Approved: ${PX[p.id].tasks.find(t => t.id === ids[0]).title}. Owner notified.` : `Approved ${ids.length} tasks for ${p.name}. Owners notified.`); }
+    const next = ppTasks(p).find(t => t.status === 'awaiting'); pp.sel = next ? next.id : ids[ids.length - 1];
+    ppRefresh(next ? '.pp-focus [data-approve]' : '.pp-close');
+  };
+  pp.stage.addEventListener('click', e => {
+    const tile = e.target.closest('.place'); if (tile) return ppOpen(tile.dataset.id);
+    if (e.target.closest('.pp-close')) return ppClose();
+    const one = e.target.closest('[data-approve]'); if (one) return ppApprove([one.dataset.approve]);
+    if (e.target.closest('[data-approve-all]')) return ppApprove(ppTasks(ppPlace(pp.open)).filter(t => t.status === 'awaiting').map(t => t.id));
+  });
+  pp.stage.addEventListener('keydown', e => { if (e.key === 'Escape' && pp.open) { e.stopPropagation(); ppClose(); } });
+  ppGrid();
+
+  /* ---------- map ---------- */
+  const HOME = [[11.535, 76.150], 12];
+  const map = L.map('map', { zoomControl: false, zoomSnap: .25 }).setView(HOME[0], HOME[1]);
+  window.RO_TILEGUARD?.(map, L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' }).addTo(map));
+  window.RO_MAPPLACES?.(map, [['Kalpetta', 'Town · district HQ', [11.6085, 76.083]], ['Meppadi', 'Town · critical zone', [11.5555, 76.135]], ['Chooralmala', 'Ward 11 · beyond km 7', [11.497, 76.155]], ['Vythiri', 'Town · flood plain', [11.5497, 76.038]], ['Mananthavady', 'Town · north Wayanad', [11.8014, 76.0044], 12.5], ['km 7, Meppadi–Chooralmala road', 'At risk · the only road in', [11.522, 76.146], 14], ['NH 766 ghat', 'At risk · landslide-prone', [11.52, 76.028], 13.5], ['Meppadi camp', 'Relief camp · water 14 h', [11.5515, 76.13], 14]]);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, opacity: .4, className: 'hillshade', attribution: 'Hillshade © Esri' }).addTo(map);
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+  const R = L.svg().addTo(map);
+  const ns = 'http://www.w3.org/2000/svg';
+  const defs = document.createElementNS(ns, 'defs');
+  defs.innerHTML = `<pattern id="hatch-c" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V7" stroke="#ff6b5f" stroke-width="1.4"/></pattern>
+    <pattern id="hatch-w" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V7" stroke="#f0a04b" stroke-width="1.4"/></pattern>
+    <pattern id="hatch-n" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V7" stroke="#d9ddd9" stroke-width="1.2"/></pattern>`;
+  R._container.prepend(defs);
+
+  const layers = { zones: L.layerGroup().addTo(map), staged: L.layerGroup().addTo(map), camp: L.layerGroup().addTo(map), roads: L.layerGroup().addTo(map) };
+  const ring = (c, rx, ry, seed, k = 1) => Array.from({ length: 44 }, (_, i) => {
+    const a = i / 44 * Math.PI * 2, m = 1 + .14 * Math.sin(a * 3 + seed) + .07 * Math.cos(a * 5 + seed * 2);
+    return [c[0] + Math.sin(a) * ry * m * k, c[1] + Math.cos(a) * rx * m * k];
+  });
+  const ZONES = [
+    { c: [11.505, 76.152], rx: .017, ry: .021, lvl: 'c', w: 1, seed: 1 },
+    { c: [11.552, 76.040], rx: .015, ry: .012, lvl: 'w', w: .8, seed: 2 },
+    { c: [11.800, 76.004], rx: .016, ry: .012, lvl: 'w', w: .75, seed: 3 },
+    { c: [11.611, 76.079], rx: .009, ry: .008, lvl: 'n', w: .5, seed: 4 }
+  ].map(z => {
+    const col = z.lvl === 'c' ? '#ff6b5f' : z.lvl === 'w' ? '#f0a04b' : '#d9ddd9';
+    const possible = L.polygon(ring(z.c, z.rx, z.ry, z.seed, 1.75), { renderer: R, color: '#f2f4f2', weight: 1.2, dashArray: '2 5', fill: false, interactive: false }).addTo(layers.zones);
+    const likely = L.polygon(ring(z.c, z.rx, z.ry, z.seed), { renderer: R, color: col, weight: 1.4, dashArray: '4 4', fillOpacity: 1, interactive: false }).addTo(layers.zones);
+    likely._path.setAttribute('fill', `url(#hatch-${z.lvl})`);
+    return Object.assign(z, { possible, likely });
+  });
+  const rainBand = L.circle([11.53, 76.13], { radius: 9000, renderer: R, color: '#ffffff', weight: 1, dashArray: '2 4', fillColor: '#ffffff', interactive: false }).addTo(layers.zones);
+
+  const applyBands = h => {
+    const f = intensity(h);
+    ZONES.forEach(z => {
+      const k = Math.min(1, f * z.w * 1.15);
+      z.likely.setStyle({ opacity: .7 + .3 * k }); z.likely._path.setAttribute('fill-opacity', (.4 + .6 * k).toFixed(2));
+      z.possible.setStyle({ opacity: k > .35 ? .25 + .6 * k : 0 });
+      const s = .8 + .25 * k; // band grows toward the peak
+      z.likely.setLatLngs(ring(z.c, z.rx * s, z.ry * s, z.seed)); z.likely._path.setAttribute('fill', `url(#hatch-${z.lvl})`);
+      z.possible.setLatLngs(ring(z.c, z.rx * s, z.ry * s, z.seed, 1.75));
+    });
+    rainBand.setRadius(6000 + 6000 * f); rainBand.setStyle({ fillOpacity: .03 + .1 * f, opacity: .3 + .4 * f });
+    const fc = $('#fc-band'); if (fc) fc.textContent = f > .75 ? 'Peak band' : f > .4 ? 'Rising band' : 'Early band';
+  };
+
+  const road = (pts, o, g) => L.polyline(pts, Object.assign({ renderer: R, lineCap: 'round', lineJoin: 'round', interactive: false }, o)).addTo(g || map);
+  road([[11.6085,76.0830],[11.596,76.072],[11.586,76.060],[11.573,76.049],[11.553,76.038],[11.525,76.030]], { color: '#c9b04a', weight: 3, opacity: .85 });
+  road([[11.6085,76.0830],[11.632,76.074],[11.664,76.058],[11.70,76.042],[11.74,76.03],[11.80,76.004]], { color: '#e6e9e6', weight: 2, opacity: .6 });
+  road([[11.6085,76.0830],[11.600,76.092],[11.592,76.101],[11.585,76.108],[11.577,76.114],[11.568,76.121],[11.560,76.130],[11.5555,76.1350]], { color: '#e6e9e6', weight: 2.2, opacity: .7 });
+  road([[11.5555,76.1350],[11.545,76.140],[11.533,76.143],[11.522,76.146],[11.512,76.148],[11.500,76.151]], { color: '#f0a04b', weight: 4, dashArray: '8 6' }, layers.roads);
+  road([[11.553,76.038],[11.525,76.030],[11.505,76.022]], { color: '#f0a04b', weight: 4, dashArray: '8 6' }, layers.roads);
+
+  const divI = (html, size, anchor) => L.divIcon({ html, className: '', iconSize: size, iconAnchor: anchor || [size[0] / 2, size[1] / 2] });
+  const mk = (ll, html, size, title, g, anchor) => L.marker(ll, { icon: divI(html, size, anchor), title, alt: title, keyboard: true, riseOnHover: true }).addTo(g || map);
+  const label = (ll, text, anchor, g) => L.marker(ll, { icon: L.divIcon({ html: `<span class="map-label">${text}</span>`, className: '', iconSize: [10, 10], iconAnchor: anchor || [-14, 26] }), interactive: false, keyboard: false }).addTo(g || map);
+  [['Kalpetta', [11.6085, 76.0830]], ['Meppadi', [11.5555, 76.1350]], ['Chooralmala', [11.497, 76.155]], ['Vythiri', [11.5497, 76.0380]], ['Mananthavady', [11.8014, 76.0044]]].forEach(([n, ll]) => {
+    L.marker(ll, { icon: divI('<div class="pin place" aria-hidden="true"></div>', [18, 18]), interactive: false, keyboard: false }).addTo(map);
+    label(ll, n, n === 'Vythiri' ? [66, -6] : n === 'Kalpetta' ? [74, 24] : [-14, 26]);   // Kalpetta sits above-left: its pins crowd the other sides
+  });
+  label([11.522, 76.146], 'At risk · km 7', [-12, 6], layers.roads);
+  label([11.520, 76.028], 'At risk · ghat', [92, 6], layers.roads);
+
+  const svgI = {
+    camp: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4 21 19H3z"/></svg>',
+    med: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    crew: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 18h16v2H4zM7 17l5-11 5 11z"/></svg>'
+  };
+  const stagePill = (txt, ok) => `<span class="stage-pill ${ok ? 'ok' : ''}"><i></i>${txt}</span>`;
+  // camps with readiness
+  const campM = mk([11.5515, 76.1300], `<div class="pin camp">${svgI.camp}</div>`, [28, 28], 'Meppadi relief camp, not ready: water for 14 hours', layers.camp);
+  const campL = label([11.5515, 76.1300], stagePill('Not ready · water 14 h'), [-18, 8], layers.camp);
+  mk([11.6030, 76.0700], `<div class="pin camp">${svgI.camp}</div>`, [28, 28], 'Kalpetta relief camp, ready', layers.camp);
+  label([11.6030, 76.0700], stagePill('Ready', true), [74, 8], layers.camp);
+  mk([11.5690, 76.0560], `<div class="pin camp">${svgI.camp}</div>`, [28, 28], 'Vythiri relief camp, ready', layers.camp);
+  // staged assets
+  const unitIcon = `<div class="unit-marker" style="--rot:40deg"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 12 20 4l-6 16-2.5-6.5z"/></svg></div>`;
+  const unit = mk([11.597, 76.101], unitIcon, [54, 54], 'Rescue Unit 2, at Kalpetta station', layers.staged);
+  const unitLbl = label([11.597, 76.101], stagePill('Rescue Unit 2 · at station'), [-30, -12], layers.staged);
+  const crew = mk([11.6165, 76.0985], `<div class="pin crew">${svgI.crew}</div>`, [28, 28], 'Excavator 3, at depot', layers.staged);
+  mk([11.566, 76.118], `<div class="pin med">${svgI.med}</div>`, [28, 28], 'WIMS hospital, ambulance 108-04', layers.staged);
+  const staging = L.circle([11.556, 76.133], { radius: 700, renderer: R, color: '#ffffff', weight: 1.2, dashArray: '4 5', fill: false, interactive: false }).addTo(layers.staged);
+
+  // floating card: Meppadi exposure
+  const zoneCard = L.marker([11.505, 76.152], { keyboard: false, title: 'Meppadi critical zone: 2,000 to 3,500 people may be exposed',
+    icon: L.divIcon({ className: '', iconSize: [210, 120], iconAnchor: [13, 305], html:
+      `<div class="float-card glass" style="width:210px"><div class="t">Meppadi zone <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg></div><div class="s">People who may be exposed</div><div class="v">2.0–3.5k<small>range</small></div><div class="band-lbl"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z" fill="currentColor"/></svg><span id="fc-band">Early band</span></div><div class="s">Peak expected 15:00–21:00</div></div>` })
+  }).addTo(layers.zones);
+  // zoomed in on a place, its detail card carries the same figures: the floating card steps aside instead of hiding under the panel
+  map.on('zoomend', () => { const el = zoneCard.getElement(); if (el) el.style.visibility = map.getZoom() > 12.6 ? 'hidden' : ''; });
+
+  /* frame the priority area in whatever space the plan panel leaves free */
+  const FOCUS = L.latLngBounds([[11.6085, 76.083], [11.497, 76.155], [11.5497, 76.038], [11.5555, 76.135]]);
+  const planEl = $('#plan');
+  const frame = animate => {
+    const open = !planEl.classList.contains('collapsed');
+    const stacked = innerWidth <= 1180;   // laptop/tablet: the panels sit below the map, not over it
+    const opts = stacked ? { paddingTopLeft: [24, 170], paddingBottomRight: [24, 80], maxZoom: 12.5 } : { paddingTopLeft: [60, 290], paddingBottomRight: [open ? 420 : 60, 340], maxZoom: 12.25 };
+    animate && !reduce ? map.flyToBounds(FOCUS, Object.assign(opts, { duration: .7 })) : map.fitBounds(FOCUS, opts);
+  };
+  const fit = () => frame(true);
+  $('#zin').onclick = () => map.zoomIn(); $('#zout').onclick = () => map.zoomOut(); $('#zfit').onclick = fit;
+  document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
+    const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on);
+    const g = layers[b.dataset.filter]; on ? g.addTo(map) : map.removeLayer(g);
+  }));
+  /* ---------- map layers tray ---------- */
+  const lctl = $('#layer-ctl'), lbtn = $('#layer-btn'); let lt;
+  const setTray = open => { clearTimeout(lt); lctl.classList.toggle('is-open', open); lbtn.setAttribute('aria-expanded', open); };
+  lctl.addEventListener('mouseenter', () => setTray(true));
+  lctl.addEventListener('mouseleave', () => { lt = setTimeout(() => { if (!lctl.contains(document.activeElement)) setTray(false); }, 250); });
+  lctl.addEventListener('focusin', () => setTray(true));
+  lctl.addEventListener('focusout', e => { if (!lctl.contains(e.relatedTarget)) setTray(false); });
+  lbtn.addEventListener('click', () => setTray(!lctl.classList.contains('is-open')));
+  lctl.addEventListener('keydown', e => { if (e.key === 'Escape') { setTray(false); lbtn.focus(); } });
+  const syncLayers = () => { const t = [...lctl.querySelectorAll('[data-filter]')], on = t.filter(b => b.getAttribute('aria-pressed') === 'true').length; lbtn.setAttribute('aria-label', `Stack: map layers, ${on} of ${t.length} shown`); };
+  lctl.addEventListener('click', e => { if (e.target.closest('[data-filter]')) setTimeout(syncLayers); });
+
+  /* ---------- scrubber ---------- */
+  const scrub = $('#scrub');
+  const setPreview = h => {
+    S.preview = h; scrub.value = h;
+    const isNow = Math.abs(h - S.now) < .2;
+    scrub.setAttribute('aria-valuetext', `${fmt(h)}${isNow ? ', now' : ', expected'}`);
+    $('#preview-lbl').innerHTML = isNow ? 'Map shows <b>now</b>' : `Map shows expected risk at <b>${fmt(h)}</b>`;
+    applyBands(h); drawTL(); drawRain();
+  };
+  scrub.addEventListener('input', () => setPreview(+scrub.value));
+
+  /* ---------- clock / progress ---------- */
+  const setNow = h => {
+    S.now = h;
+    $('#clock-lbl').textContent = `Simulated · ${fmt(h)} IST`; $('#sub-clock').textContent = `${fmt(h)} IST`;
+    const left = Math.max(0, 9 - h), hh = Math.floor(left), mm = Math.round((left - hh) * 60);
+    $('#t-peak').innerHTML = `<span aria-hidden="true">${hh}<small>h</small> ${String(mm).padStart(2, '0')}<small>m</small></span><span class="sr-only">${hh} hours ${mm} minutes</span>`;
+    document.querySelectorAll('.place .window').forEach(w => w.style.setProperty('--p', (h / 24 * 100).toFixed(1) + '%'));
+    if (S.approved) {
+      let done = 4;
+      TASKS.forEach(t => {
+        const row = document.getElementById(t.id); if (!row) return;
+        const st = row.querySelector('[data-st]'); if (!row.dataset.inc) return;
+        if (h >= t.due) { st.textContent = 'Done'; st.className = 'chip ok'; done++; }
+        else if (h >= 0.6) { st.textContent = 'Accepted · in progress'; st.className = 'chip ok'; }
+      });
+      $('#t-ready').innerHTML = `<span aria-hidden="true">${done}<span class="dim">/12</span></span><span class="sr-only">${done} of 12</span>`;
+      if (h >= 4 && document.getElementById('t2').dataset.inc) { unit.setLatLng([11.557, 76.131]); unitLbl.setLatLng([11.557, 76.131]); unitLbl.setIcon(L.divIcon({ html: `<span class="map-label">${stagePill('Rescue Unit 2 · standby at Meppadi', true)}</span>`, className: '', iconSize: [10, 10], iconAnchor: [-30, -12] })); }
+      if (h >= 6 && document.getElementById('t4').dataset.inc) crew.setLatLng([11.553, 76.139]);
+      if (h >= 6 && document.getElementById('t3').dataset.inc) campL.setIcon(L.divIcon({ html: `<span class="map-label">${stagePill('Ready · water 48 h', true)}</span>`, className: '', iconSize: [10, 10], iconAnchor: [-18, 8] }));
+    }
+    setPreview(h);
+    if (typeof ppRefresh === 'function') ppRefresh();
+    if (capOf(CAP[0]) === 'requested' && h >= 6) capSync('water');
+  };
+  // one approval path for the plan panel and the Meppadi card: approve some or all; the rest stay open to approve later
+  function approveIds(ids) {
+    ids = ids.filter(id => { const r = document.getElementById(id); return r && !r.dataset.inc; }); if (!ids.length) return;
+    S.approved = true;
+    ids.forEach(id => { const row = document.getElementById(id), cb = row.querySelector('input'); row.dataset.inc = '1'; cb.checked = true; cb.disabled = true;
+      const st = row.querySelector('[data-st]'); st.textContent = 'Approved · awaiting acceptance'; st.className = 'chip warn'; });
+    const left = TASKS.filter(t => !document.getElementById(t.id).dataset.inc), done = TASKS.length - left.length;
+    $('#approve').hidden = !left.length; $('#sel-count').hidden = !left.length; syncSel();
+    const ps = $('#plan-state'); ps.hidden = false;
+    ps.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>${done} of ${TASKS.length} approved by Ananya Menon · last at ${fmt(S.now)} · sent to ${new Set(TASKS.filter(t => document.getElementById(t.id).dataset.inc).map(t => t.owner)).size} agencies`;
+    $('#plan-count').textContent = left.length; $('#nav-count').textContent = left.length; $('#nav-count').hidden = !left.length;
+    toast(ids.length === 1 ? `Approved: ${TASKS.find(t => t.id === ids[0]).title}. ${TASKS.find(t => t.id === ids[0]).owner} notified.` : `${ids.length} readiness tasks approved and sent to the agencies`);
+    ppRefresh(); capSync(ids.includes('t3') ? 'water' : null);
+  }
+  $('#approve').addEventListener('click', () => approveIds(selected()));
+
+  /* ---------- demo: fast-forward to 12:02 ---------- */
+  const TARGET = 6 + 2 / 60;
+  $('#demo').addEventListener('click', () => {
+    if (S.running || S.activated) return;
+    if (!S.approved) toast('Running without an approved plan — tasks will stay open');
+    S.running = true; $('#demo').disabled = true;
+    const start = S.now, dur = reduce ? 1 : 5000, t0 = performance.now();
+    const step = t => {
+      if (!S.running) return;
+      const k = Math.max(0, Math.min(1, (t - t0) / dur));
+      setNow(start + (TARGET - start) * k);
+      if (k < 1) requestAnimationFrame(step); else trigger();
+    };
+    requestAnimationFrame(step);
+    setTimeout(() => { if (S.running) { setNow(TARGET); trigger(); } }, dur + 500);   // frames pause in a hidden tab: finish anyway
+  });
+  const trigger = () => {
+    S.running = false;
+    $('#activation').hidden = false; $('#plan-body').scrollTop = 0;
+    if (planEl.classList.contains('collapsed')) { pill.classList.add('alert'); $('#pill-label').textContent = 'Response activation recommended'; pill.setAttribute('aria-label', 'Response activation recommended. Open plan'); }
+    $('#nav-respond').insertAdjacentHTML('beforeend', '<span class="dot-alert" aria-hidden="true"></span>');
+    $('#nav-respond-sr').textContent = ', activation recommended';
+    $('#bell-count').textContent = '2'; $('#bell').setAttribute('aria-label', 'Alerts, 2 unread');
+    toast('Verified landslide report at Meppadi — response activation recommended');
+    $('#open-handover').focus();
+  };
+  $('#keep-prep').addEventListener('click', () => { $('#activation').hidden = true; toast('Staying in Prepare — you can activate from the Respond tab'); S.activated = false; });
+
+  /* ---------- handover dialog ---------- */
+  const dlg = $('#handover'); let lastFocus;
+  const li = (ic, a, b) => `<li><svg class="${ic}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic === 'ic-ok' ? '<path d="m5 12 4.5 4.5L19 7"/>' : '<path d="M12 6v8"/><circle cx="12" cy="18" r=".6" fill="currentColor"/>'}</svg><span>${a}${b ? `<small>${b}</small>` : ''}</span></li>`;
+  // what Prepare hands to Respond: kept in the shared event state when the response is activated
+  let HO = null;
+  const openHandover = () => {
+    const done = [], open = [], tasks = {};
+    TASKS.forEach(t => {
+      const row = document.getElementById(t.id);
+      tasks[t.id] = row.dataset.inc ? (S.now >= t.due ? 'done' : 'progress') : 'none';
+      if (tasks[t.id] === 'done') done.push([t.title, `${t.owner} · done by ${fmt(t.due)}`]);
+      else open.push([t.title, row.dataset.inc ? 'Still in progress' : 'Never approved']);
+    });
+    open.push([AT_RISK.title, 'Fuel still not confirmed']);
+    CAP.filter(i => i.fix && i.fix !== 'task').forEach(i => {
+      const st = capOf(i), d = DRAFT[i.fix];
+      if (st === 'ok') done.push([d.reply, `${d.who} · capacity ${kfmt(i.need)}/${kfmt(i.need)}`]);
+      else open.push([`${i.n} ${kfmt(i.have)} of ${kfmt(i.need)}`, st === 'requested' ? `${d.title} sent, not yet confirmed` : `${d.title} not sent`]);
+    });
+    HO = { from: 'Prepare', by: 'Ananya Menon', done, open, tasks, cap: Object.fromEntries(CAP.map(i => [i.id, capOf(i)])) };
+    $('#ho-done').innerHTML = done.map(([a, b]) => li('ic-ok', a, b)).join('') || '<li><span style="grid-column:1/-1;color:var(--ink-2)">No readiness tasks completed</span></li>';
+    $('#ho-open').innerHTML = open.map(([a, b]) => li('ic-warn', a, b)).join('');
+    lastFocus = document.activeElement; dlg.hidden = false; $('#ho-activate').focus();
+  };
+  const closeHandover = () => { dlg.hidden = true; lastFocus && lastFocus.focus(); };
+  $('#open-handover').addEventListener('click', openHandover);
+  $('#ho-cancel').addEventListener('click', () => { closeHandover(); toast('Staying in Prepare'); });
+  dlg.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeHandover();
+    if (e.key === 'Tab') {
+      const f = [...dlg.querySelectorAll('button:not([disabled])')]; const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  $('#ho-activate').addEventListener('click', () => {
+    S.activated = true;
+    if (HO) window.RO_STATE?.set('handover.prepare', Object.assign(HO, { when: 'Day 0 · 12:06' }));
+    $('#ho-note').textContent = `Response activated by Ananya Menon at 12:06. Opening Respond…`;
+    $('#ho-note').setAttribute('role', 'status');
+    $('#ho-activate').disabled = true; $('#ho-cancel').disabled = true;
+    $('#event-phase').textContent = 'Respond';
+    setTimeout(() => { location.href = 'wayanad-dashboard.html'; }, reduce ? 600 : 1800);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lb.getAttribute('aria-expanded') === 'true') { lb.click(); lb.focus(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('.search input').focus(); }
+  });
+
+  /* ---------- minimise / expand the plan ---------- */
+  const pill = $('#plan-pill');
+  const store = { get: () => { try { return sessionStorage.getItem('prep.plan'); } catch (e) { return null; } },
+                  set: v => { try { sessionStorage.setItem('prep.plan', v); } catch (e) {} } };
+  const setPlan = (open, animate = true) => {
+    planEl.classList.toggle('collapsed', !open);
+    pill.hidden = open;
+    $('#plan-collapse').setAttribute('aria-expanded', open); pill.setAttribute('aria-expanded', open);
+    if (open) { pill.classList.remove('alert'); $('#pill-label').textContent = 'Plan to approve'; pill.removeAttribute('aria-label'); }
+    store.set(open ? 'open' : 'min');
+    frame(animate);
+  };
+  $('#plan-collapse').addEventListener('click', () => { setPlan(false); pill.focus(); });
+  pill.addEventListener('click', () => {
+    const urgent = pill.classList.contains('alert');
+    setPlan(true); (urgent ? $('#open-handover') : $('#plan-collapse')).focus();
+  });
+  // keep the pill's count in step with the panel's
+  new MutationObserver(() => { $('#pill-count').textContent = $('#plan-count').textContent; })
+    .observe($('#plan-count'), { childList: true, characterData: true, subtree: true });
+
+  let rz; addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(drawTL); });
+  syncSel(); setNow(S.now);
+  setPlan(store.get() !== 'min', false);  // starts open; remembers a minimise for this visit
+  /* ---------- product tour ---------- */
+  // each step lights the real area and shows a live crop of the page around it (fit to width, centred on focusY)
+  const TOUR = [
+    { t: 'Wayanad, before the storm', p: 'Extremely heavy rain is forecast for the next 24 hours. This view gets the district ready before it hits.', sel: null, fy: .42 },
+    { t: 'Forecast and priority places', p: 'The rainfall forecast and the places ranked by risk, each with its readiness. Select a place to see it on the map.', sel: '.rail', fy: .5, inset: { l: 0, t: 80, r: 0, b: 0 }, k: .62, crop: ['.place', 2], pad: 14 },
+    { t: 'Where risk is expected', p: 'Hatched areas show where landslides or flooding are likely. Staged teams, relief camps and roads at risk are marked.', sel: '#map', fy: .42, inset: { l: 468, t: 72, r: 0, b: 0 }, k: .5, side: 'left' },
+    { t: 'The plan to approve', p: 'The AI drafted the readiness tasks. Nothing happens until the Incident Commander approves them.', sel: '#plan', fy: .3, k: .8, crop: ['#plan .task', 2], pad: 6 },
+    { t: 'The next 24 hours', p: 'Drag the outlook to preview how the risk is expected to grow. The capacity check shows the gaps to close before noon.', sel: '.bottom', fy: .5, crop: '.outlook', pad: 12 },
+    { t: 'See it work', p: 'Fast-forward the day to 12:02, when a landslide is reported and Prepare hands over to Respond.', sel: null, fy: .42, last: true, crop: '#demo', pad: 24 }
+  ];
+  const tourEl = $('#tour'), spot = $('#tour-spot'), clone = $('#tour-clone'), prev = clone.parentElement;
+  const TKEY = 'prep.tour.seen';
+  const seen = { get: () => { try { return localStorage.getItem(TKEY); } catch (e) { return null; } }, set: () => { try { localStorage.setItem(TKEY, '1'); } catch (e) {} } };
+  let tIdx = 0, tourReturn = null;
+  const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>';
+  const rectOf = st => {
+    if (!st.sel) return null;
+    const el = $(st.sel); if (!el || !el.offsetParent && el.getClientRects().length === 0) return null;
+    let r = el.getBoundingClientRect();
+    if (st.inset) r = { left: Math.max(r.left, st.inset.l), top: Math.max(r.top, st.inset.t), right: r.right - st.inset.r, bottom: r.bottom - st.inset.b };
+    return { x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top };
+  };
+  // the area a step previews: a union of the first n elements matching `crop`, else the lit area, else (null) the whole page
+  const cropRect = st => {
+    if (!st.crop) return rectOf(st);
+    const [sel, n = 1] = [].concat(st.crop);
+    const els = [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length).slice(0, n);
+    if (!els.length) return rectOf(st);
+    const rs = els.map(e => e.getBoundingClientRect()), x = Math.min(...rs.map(r => r.left)), y = Math.min(...rs.map(r => r.top));
+    return { x, y, w: Math.max(...rs.map(r => r.right)) - x, h: Math.max(...rs.map(r => r.bottom)) - y };
+  };
+  const paintCrop = (r, st) => {
+    // live crop: a copy of the page (ids stripped, inert), scaled so the previewed feature fills the preview
+    const app = $('.app'), copy = app.cloneNode(true);
+    copy.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+    copy.setAttribute('inert', ''); copy.setAttribute('aria-hidden', 'true');
+    copy.style.width = innerWidth + 'px'; copy.style.height = innerHeight + 'px';
+    clone.replaceChildren(copy);
+    const PW = prev.clientWidth, PH = prev.clientHeight, pad = st.pad ?? 24, fit = !r || !!st.crop;
+    const area = r || { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    if (st.crop && r) {   // show only the feature (plus its padding), not the neighbouring page
+      const c = v => Math.max(0, Math.round(v));
+      copy.style.clipPath = `inset(${c(r.y - pad)}px ${c(innerWidth - r.x - r.w - pad)}px ${c(innerHeight - r.y - r.h - pad)}px ${c(r.x - pad)}px round 16px)`;
+    }
+    let k = Math.min(st.k || 1.5, PW / (area.w + pad * 2));
+    if (fit) k = Math.min(k, PH / (area.h + pad * 2));      // features and the whole page must show completely
+    const cx = area.x + area.w / 2, cy = area.y + area.h * (fit ? .5 : (st.fy ?? .5));
+    const place = (size, view, c) => st.crop && r ? view / 2 - c * k : size * k <= view ? (view - size * k) / 2 : Math.min(0, Math.max(view - size * k, view / 2 - c * k));
+    clone.style.transform = `translate(${place(innerWidth, PW, cx)}px, ${place(innerHeight, PH, cy)}px) scale(${k})`;
+  };
+  // keep the card off the lit area: beside it, then above or below it; centred when nothing fits (e.g. the map)
+  const placeCard = (r, side) => {
+    const card = $('.tour-card'), m = 24, W = innerWidth, H = innerHeight;
+    // a card asked to sit left of a wide area narrows to the space there (never under 360px)
+    card.style.width = side === 'left' && r ? Math.max(360, Math.min(560, r.x - m * 2)) + 'px' : '560px';
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    let cx = W / 2, cy = H / 2;
+    if (r && side === 'left') { card.style.left = m + cw / 2 + 'px'; card.style.top = H / 2 + 'px'; return; }
+    if (r) {
+      const fits = [
+        [r.x + r.w + m + cw / 2, H / 2, W - (r.x + r.w) - m * 2 >= cw],
+        [r.x - m - cw / 2, H / 2, r.x - m * 2 >= cw],
+        [W / 2, r.y - m - ch / 2, r.y - m * 2 >= ch],
+        [W / 2, r.y + r.h + m + ch / 2, H - (r.y + r.h) - m * 2 >= ch]
+      ].find(f => f[2]);
+      if (fits) [cx, cy] = fits;
+      if (fits && r.y > H / 2 && fits[1] === r.y - m - ch / 2) cx = Math.min(Math.max(r.x + r.w / 2, cw / 2 + m), W - cw / 2 - m);
+    }
+    card.style.left = cx + 'px'; card.style.top = Math.max(ch / 2 + m, Math.min(H - ch / 2 - m, cy)) + 'px';
+  };
+  // blur + dim everything except a rounded hole over the area
+  const paintDim = r => {
+    const d = $('#tour-dim');
+    if (!r) { d.style.maskImage = d.style.webkitMaskImage = 'none'; return; }
+    const W = innerWidth, H = innerHeight, x = r.x - 6, y = r.y - 6, w = r.w + 12, h = r.h + 12, rr = 26;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><path fill-rule="evenodd" d="M0 0H${W}V${H}H0Z M${x + rr} ${y}H${x + w - rr}A${rr} ${rr} 0 0 1 ${x + w} ${y + rr}V${y + h - rr}A${rr} ${rr} 0 0 1 ${x + w - rr} ${y + h}H${x + rr}A${rr} ${rr} 0 0 1 ${x} ${y + h - rr}V${y + rr}A${rr} ${rr} 0 0 1 ${x + rr} ${y}Z"/></svg>`;
+    d.style.maskImage = d.style.webkitMaskImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  };
+  const showStep = i => {
+    tIdx = Math.max(0, Math.min(TOUR.length - 1, i));
+    const st = TOUR[tIdx], r = rectOf(st);
+    spot.classList.toggle('none', !r);
+    if (r) Object.assign(spot.style, { left: r.x - 6 + 'px', top: r.y - 6 + 'px', width: r.w + 12 + 'px', height: r.h + 12 + 'px' });
+    $('#tour-n').textContent = `${tIdx + 1} of ${TOUR.length}`;
+    $('#tour-h').textContent = st.t; $('#tour-p').textContent = st.p;
+    $('#tour-acts').innerHTML = st.last
+      ? `<button class="btn" type="button" data-t="close">Explore on my own</button><button class="btn primary" type="button" id="tour-go">${TOUR_GO.icon || ''}${TOUR_GO.label}</button>`
+      : `<button class="btn" type="button" data-t="close">Skip</button>${tIdx ? '<button class="btn" type="button" data-t="back">Back</button>' : ''}<button class="btn primary" type="button" data-t="next">Next</button>`;
+    $('#tour-go')?.addEventListener('click', () => { closeTour(false); TOUR_GO.run(); });
+    paintDim(r);
+    placeCard(r, st.side);
+    paintCrop(cropRect(st), st);
+    $('#tour-acts .primary').focus();
+  };
+  const openTour = () => {
+    tourReturn = document.activeElement;
+    [...document.body.children].forEach(n => { if (n !== tourEl && n.id !== 'toast' && n.tagName !== 'SCRIPT') n.setAttribute('inert', ''); });
+    tourEl.hidden = false; showStep(0);
+  };
+  function closeTour(restoreFocus = true) {
+    if (tourEl.hidden) return;
+    tourEl.hidden = true; clone.replaceChildren(); seen.set();
+    document.querySelectorAll('body > [inert]').forEach(n => n.removeAttribute('inert'));
+    if (restoreFocus) (tourReturn && tourReturn.isConnected ? tourReturn : $('#guide-btn')).focus();
+  }
+  $('#tour-acts').addEventListener('click', e => {
+    const b = e.target.closest('[data-t]'); if (!b) return;
+    ({ close: () => closeTour(), back: () => showStep(tIdx - 1), next: () => showStep(tIdx + 1) })[b.dataset.t]();
+  });
+  tourEl.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeTour(); }
+    else if (e.key === 'ArrowRight' && !TOUR[tIdx].last) showStep(tIdx + 1);
+    else if (e.key === 'ArrowLeft' && tIdx) showStep(tIdx - 1);
+    else if (e.key === 'Tab') { // keep focus in the card
+      const f = [...tourEl.querySelectorAll('button')], a = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(a + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+  addEventListener('resize', () => { if (!tourEl.hidden) showStep(tIdx); });
+  $('#guide-btn').addEventListener('click', openTour);
+
+  const TOUR_GO = { label: 'Run demo to 12:02', icon: PLAY, run: () => $('#demo').click() };
+  if (!seen.get() && !new URLSearchParams(location.search).has('notour')) setTimeout(openTour, 900);
+
+  /* ---------- agents: the plan's text comes from the Preparedness Agent; the advisory from the Communications Agent ---------- */
+  window.RO_AI?.bind('preparedness', { host: () => { const h = $('#ai-src'); h.hidden = false; return h; }, apply: t => {
+    $('#ai-head').textContent = t.headline; $('#ai-basis').textContent = t.basis; $('#ai-conf').textContent = t.confidence;
+    $('#why').innerHTML = t.why_list.map(x => `<li>${RO_AI.esc(x)}</li>`).join('');
+    TASKS.forEach(k => { const w = t.task_why[k.id]; if (!w) return; k.why = w; const sp = document.querySelector(`#${k.id}-b span`); if (sp) sp.innerHTML = `<b>Why now</b> · ${RO_AI.esc(w)}`; });
+    Object.entries(t.draft_why || {}).forEach(([k, w]) => { if (DRAFT[k] && w) DRAFT[k].why = w; });
+  } });
+  window.RO_API?.agent('communications').then(r => { if (!r || r.source !== 'gemini') return; if (r.text.advisory_en) ADV = r.text.advisory_en; ADV_ML = r.text.advisory_ml || ''; });
+})();
+</script>
+</body>
+</html>

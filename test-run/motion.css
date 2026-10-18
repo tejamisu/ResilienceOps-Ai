@@ -1,0 +1,93 @@
+  /* ================= motion + interaction layer (16 Oct 2026) =================
+     Emil Kowalski's rules: animate only for feedback, spatial consistency, state or a jarring change;
+     transform + opacity only; strong ease-out for UI; under 300 ms; reduced motion = gentler, not zero.
+     Vercel interface guidelines: keyboard parity, input-driven and interruptible motion, honest hover.
+     build-app.py appends this after each page's own styles so it extends them. */
+  :root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); }
+
+  /* ---------- 1 · press feedback (tens a day: subtle, 160 ms) ---------- */
+  :is(.btn, .round, .pill-btn, .fbtn, .rp-filt, .avatar, .collapse-btn, .ftl-x, .seg button, .fchip, .rpf-seg button, .tcar-dots button, .nt-tabs button, .rq-foot .btn, .layer-tile, .rail button.card, .place, .team) {
+    transition: transform 160ms var(--ease-out), background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, opacity .2s ease;
+  }
+  :is(.btn, .round, .pill-btn, .fbtn, .rp-filt, .avatar, .collapse-btn, .ftl-x, .seg button, .fchip, .rpf-seg button, .nt-tabs button, .layer-tile):active:not(:disabled) { transform: scale(.97); }
+  :is(.rail button.card, .place, .team):active { transform: scale(.985); }   /* big surfaces press less */
+
+  /* ---------- 2 · card arrow (↗): a disc on hover, the arrow nudges toward where it goes ---------- */
+  a.open { border-radius: 50%; transition: background-color .2s ease; }
+  a.open svg { transition: transform 200ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    a.open:hover { background: rgba(255,255,255,.08); }
+    a.open:hover svg { transform: translate(2px, -2px); }
+    .card:has(> .card-h a.open) { transition: border-color .2s ease, background-color .2s ease; }
+    .card:has(> .card-h a.open:hover) { border-color: var(--hair-2); }
+  }
+
+  /* ---------- 3 · popovers scale out of their trigger (top right: avatar, bell, filter buttons) ---------- */
+  .role-menu, .ro-pop, .rpf, .fdd { transform-origin: top right; transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out); }
+  .fdd { animation: none; }
+  @starting-style { .role-menu, .ro-pop, .rpf, .fdd { opacity: 0; transform: scale(.97) translateY(-4px); } }
+  .layer-tray { transform-origin: bottom left; }
+  .layer-ctl .layer-tray, .layer-ctl.is-open .layer-tray { transition-timing-function: var(--ease-out); }
+
+  /* tooltips: a short delay on the first, then instant while you move along the toolbar */
+  [data-tip]::after { transition: opacity 125ms var(--ease-out), visibility 0s linear 125ms; }
+  [data-tip]:is(:hover, :focus-visible)::after { transition: opacity 125ms var(--ease-out) 350ms, visibility 0s linear 350ms; }
+  body.ro-tip-warm [data-tip]:is(:hover, :focus-visible)::after { transition: none; }
+
+  /* ---------- 4 · panels: minimise to the pill and back, from the top-right corner they live in ---------- */
+  .decisions { transform-origin: top right; transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
+  .plan-pill { transform-origin: top right; transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out), background-color .2s ease; }
+  @starting-style { .decisions, .plan-pill { opacity: 0; transform: scale(.96); } }
+
+  /* ---------- 5 · things that appear: state lines, "why" lists, expanded rows, notes ---------- */
+  :is(.state, .why, .tl-d, .tr-body, .ftl-note, [role="status"].state, .pg-note, .rq-err, .saved, #m-draft) { transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
+  @starting-style { :is(.state, .why, .tl-d, .tr-body, .rq-err, .saved, #m-draft) { opacity: 0; transform: translateY(-4px); } }
+  .caret { transition: transform 200ms var(--ease-out) !important; }
+
+  /* ---------- 6 · page entrance: cards rise in, 50 ms apart (occasional: once per page) ---------- */
+  @keyframes ro-rise { from { opacity: 0; transform: translateY(8px); } }
+  :is(.rail > *, .bottom > *, .vmain > *, .map-head, .decisions, .controls) { animation: ro-rise 300ms var(--ease-out) backwards; }
+  .rail > :nth-child(2), .bottom > :nth-child(1), .vmain > :nth-child(2) { animation-delay: 50ms; }
+  .rail > :nth-child(3), .bottom > :nth-child(2), .vmain > :nth-child(3) { animation-delay: 100ms; }
+  .rail > :nth-child(4), .bottom > :nth-child(3), .vmain > :nth-child(4), .decisions { animation-delay: 150ms; }
+  .rail > :nth-child(n+5), .vmain > :nth-child(n+5), .controls { animation-delay: 200ms; }
+  .tour-clone *, .tour-clone { animation: none !important; }   /* tour previews are snapshots, not entrances */
+
+  /* ---------- 7 · numbers that change tick into place (state indication) ---------- */
+  @keyframes ro-num { from { opacity: 0; transform: translateY(35%); filter: blur(2px); } }
+  .ro-num { animation: ro-num 260ms var(--ease-out); }
+  :where(span, b, em):where(.ro-num) { display: inline-block; }   /* zero specificity: badges keep their own display */
+
+  /* ---------- 8 · interactive charts: guideline, dots and a value tooltip that follows the pointer or the arrow keys ---------- */
+  .ro-chart { cursor: default; touch-action: pan-y; }
+  .ro-chart:focus { outline: none; }
+  .ro-chart:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 6px; }
+  .ro-scrub { pointer-events: none; opacity: 0; transition: opacity 125ms var(--ease-out); }
+  .ro-scrub.on { opacity: 1; }
+  .ro-tip { position: absolute; z-index: 40; left: 0; top: 0; min-width: 132px; padding: 8px 10px; border-radius: 12px; pointer-events: none;
+    background: #0d0f0e; border: 1px solid var(--hair-2); box-shadow: 0 12px 32px -8px rgba(0,0,0,.6); font-size: 12px; line-height: 1.35; color: var(--ink);
+    opacity: 0; transform-origin: bottom center; transition: opacity 125ms var(--ease-out), transform 120ms var(--ease-out); white-space: nowrap; }
+  .ro-tip.on { opacity: 1; }
+  .ro-tip.jump { transition: opacity 125ms var(--ease-out); }   /* first show lands in place, then glides between points */
+  .ro-tip b { display: block; margin-bottom: 4px; font-weight: 400; color: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .ro-tip p { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+  .ro-tip p + p { margin-top: 2px; }
+  .ro-tip p i { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--c); }
+  .ro-tip p i.dash { height: 2px; border-radius: 1px; width: 10px; }
+  .ro-tip p span { flex: 1; color: var(--ink-2); }
+  .ro-tip p em { font-style: normal; }
+  .ro-tip small { display: block; margin-top: 4px; color: var(--warning); font-size: 11px; }
+
+  /* ---------- 9 · content swaps (report, filtered lists) cross-fade with a 2px blur so two states never double-expose ---------- */
+  @keyframes ro-swap { from { opacity: .35; filter: blur(2px); } }
+  .ro-swap { animation: ro-swap 200ms ease; }
+
+  /* ---------- reduced motion: keep the fades that explain, drop every movement ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes ro-rise { from { opacity: 0; } }
+    @keyframes ro-num { from { opacity: .3; } }
+    :is(.btn, .round, .pill-btn, .fbtn, .rp-filt, .avatar, .collapse-btn, .ftl-x, .seg button, .fchip, .rpf-seg button, .nt-tabs button, .layer-tile, .rail button.card, .place, .team):active { transform: none !important; }
+    a.open:hover svg { transform: none; }
+    @starting-style { .role-menu, .ro-pop, .rpf, .fdd, .decisions, .plan-pill, :is(.state, .why, .tl-d, .tr-body, .rq-err, .saved, #m-draft) { transform: none; } }
+    .ro-tip { transition: opacity 125ms ease; }
+  }

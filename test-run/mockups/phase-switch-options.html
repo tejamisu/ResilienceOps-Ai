@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase switcher · options</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* MOCKUP ONLY — three ways to switch phase from the avatar menu: a centred dialog over the blurred app. */
+  :root { --ink: #f2f4f2; --ink-2: #b9c0bb; --hair: rgba(255,255,255,.08); --hair-2: rgba(255,255,255,.16); --card: #1e2221; --card-hi: #262b29;
+    --critical: #ff6b5f; --warning: #f0a04b; --ok: #7bd88f; --prep: #f0a04b; --resp: #ff6b5f; --rec: #7bd88f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #111413; color: var(--ink); font: 400 15px/1.45 Outfit, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+  /* the real app behind, blurred and dimmed */
+  .app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; filter: blur(7px) saturate(.8); transform: scale(1.02); }
+  .scrim { position: fixed; inset: 0; background: rgba(8,10,9,.58); }
+  .pick { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 9; display: flex; gap: 6px; padding: 4px; border-radius: 999px; background: rgba(17,20,19,.9); border: 1px solid var(--hair-2); font-size: 13px; }
+  .pick a { padding: 6px 12px; border-radius: 999px; color: var(--ink-2); text-decoration: none; } .pick a[aria-current="true"] { background: var(--card-hi); color: var(--ink); }
+  .dlg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(24,28,26,.9); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--hair-2); border-radius: 30px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.8); }
+  .x { position: absolute; top: 18px; right: 18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hair-2); background: rgba(255,255,255,.06); color: var(--ink); display: grid; place-items: center; }
+  .x svg { width: 16px; height: 16px; }
+  .k { font-size: 12.5px; color: var(--ink-2); }
+  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+  .st svg { width: 13px; height: 13px; }
+  .st.now { color: var(--ink); } .st.done svg { color: var(--ok); }
+  .cnt { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+  .cnt.w { background: var(--warning); color: #24160a; } .cnt.c { background: var(--critical); color: #1b0f0e; }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 12.5px; color: var(--ink-2); }
+  .foot a { color: var(--ink); text-underline-offset: 3px; }
+  kbd { font: inherit; font-size: 11.5px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--hair-2); color: var(--ink); }
+  .sk { fill: none; stroke: #e6e9e6; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+
+  /* ---------- A · Tiles (closest to the reference) ---------- */
+  #a .dlg { width: 860px; padding: 44px 48px 30px; text-align: center; }
+  #a h2 { font-size: 36px; font-weight: 200; letter-spacing: -.01em; }
+  #a .sub { margin-top: 6px; color: var(--ink-2); }
+  #a .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin: 34px 0 30px; }
+  #a .tile { display: grid; justify-items: center; gap: 10px; color: inherit; text-decoration: none; }
+  #a .art { position: relative; width: 196px; height: 196px; border-radius: 26px; overflow: hidden; border: 1px solid var(--hair-2); background: linear-gradient(180deg, #232826, #191d1b); }
+  #a .art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #a .tile.cur .art { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); }
+  #a .tile:hover .art { transform: translateY(-2px); }
+  #a .nm { font-size: 20px; font-weight: 400; display: flex; align-items: center; gap: 8px; } #a .nm i { width: 8px; height: 8px; border-radius: 50%; }
+  #a .pp { font-size: 13px; color: var(--ink-2); max-width: 190px; }
+  #a .now-tag { position: absolute; top: 12px; left: 12px; padding: 3px 10px; border-radius: 999px; background: var(--ink); color: #141716; font-size: 12px; font-weight: 500; }
+  #a .foot { border-top: 1px solid var(--hair); padding-top: 18px; }
+
+  /* ---------- B · Timeline (the phases as one event) ---------- */
+  #b .dlg { width: 980px; padding: 34px 38px 28px; }
+  #b h2 { font-size: 28px; font-weight: 300; } #b .sub { margin-top: 4px; color: var(--ink-2); }
+  #b .track { position: relative; margin: 34px 0 6px; height: 46px; }
+  #b .track .ln { position: absolute; left: 16.6%; right: 16.6%; top: 22px; height: 2px; background: rgba(255,255,255,.14); }
+  #b .track .fill { position: absolute; left: 16.6%; width: 66.8%; top: 22px; height: 2px; background: linear-gradient(90deg, var(--prep), var(--resp) 50%, var(--rec)); }
+  #b .node { position: absolute; top: 12px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #1b1f1d; border: 2px solid var(--ink-2); }
+  #b .node.done { background: var(--ink-2); } #b .node.cur { border-color: var(--ink); background: var(--ink); box-shadow: 0 0 0 6px rgba(242,244,242,.15); }
+  #b .when { position: absolute; top: -14px; transform: translateX(-50%); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  #b .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  #b .card { display: grid; gap: 10px; padding: 20px; border-radius: 22px; border: 1px solid var(--hair); background: rgba(255,255,255,.03); color: inherit; text-decoration: none; }
+  #b .card.cur { border-color: var(--hair-2); background: var(--card-hi); box-shadow: inset 0 0 0 1px rgba(242,244,242,.25); }
+  #b .card h3 { font-size: 22px; font-weight: 300; display: flex; justify-content: space-between; align-items: center; }
+  #b .card ul { list-style: none; display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); } #b .card li b { color: var(--ink); font-weight: 400; }
+  #b .open { justify-self: start; margin-top: 4px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hair-2); display: inline-flex; align-items: center; font-size: 13.5px; }
+  #b .card.cur .open { background: var(--ink); color: #141716; border-color: var(--ink); font-weight: 500; }
+  #b .foot { margin-top: 20px; }
+
+  /* ---------- C · List + live preview ---------- */
+  #c .dlg { width: 1040px; padding: 30px; display: grid; grid-template-columns: 330px 1fr; gap: 26px; }
+  #c h2 { font-size: 26px; font-weight: 300; } #c .sub { margin-top: 4px; color: var(--ink-2); font-size: 13.5px; }
+  #c .list { display: grid; gap: 8px; margin-top: 22px; }
+  #c .row { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px; border: 1px solid var(--hair); color: inherit; text-decoration: none; }
+  #c .row .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #1a1e1c; border: 1px solid var(--hair-2); }
+  #c .row .ic svg { width: 22px; height: 22px; }
+  #c .row b { display: block; font-size: 16px; font-weight: 400; } #c .row span.p { font-size: 12.5px; color: var(--ink-2); }
+  #c .row.sel { background: var(--card-hi); border-color: var(--hair-2); box-shadow: inset 3px 0 0 var(--ink); }
+  #c .pv { display: grid; grid-template-rows: auto 1fr auto; gap: 14px; min-width: 0; }
+  #c .pv-h { display: flex; justify-content: space-between; align-items: baseline; padding-right: 50px; }
+  #c .shot { position: relative; height: 330px; border-radius: 18px; overflow: hidden; border: 1px solid var(--hair-2); background: #111; }
+  #c .shot iframe { position: absolute; top: 0; left: 0; width: 1440px; height: 900px; border: 0; transform: scale(.452); transform-origin: 0 0; pointer-events: none; }
+  #c .wait { display: flex; gap: 10px; flex-wrap: wrap; } #c .wait span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--hair-2); font-size: 13px; }
+  #c .go { display: flex; justify-content: space-between; align-items: center; }
+  #c .go .btn { height: 44px; padding: 0 20px; border-radius: 999px; background: var(--ink); color: #141716; font-weight: 500; display: inline-flex; align-items: center; }
+  .opt { display: none; } .opt:target, .opt.on { display: block; }
+</style>
+</head>
+<body>
+<iframe class="app" src="../resilienceops.html?phase=recover&notour&api=http://localhost:9" tabindex="-1" aria-hidden="true"></iframe>
+<div class="scrim"></div>
+<nav class="pick" id="pick"><a href="#a">A · Tiles</a><a href="#b">B · Timeline</a><a href="#c">C · List + preview</a></nav>
+
+<!-- shared line-art (the place-card terrain language) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="hp" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#f0a04b" stroke-width="1.2" opacity=".8"/></pattern>
+  <pattern id="hr" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#ff6b5f" stroke-width="1.2" opacity=".8"/></pattern>
+  <symbol id="art-prep" viewBox="0 0 196 196"><path d="M42 58c0-10 9-17 19-15 3-11 15-17 26-12 7-9 23-7 27 5 11 0 18 10 14 20H46c-3 0-4-2-4-4" class="sk"/>
+    <g stroke="#f0a04b" stroke-width="1.4" stroke-linecap="round" opacity=".85"><path d="M58 78l-5 12M74 78l-5 12M90 78l-5 12M106 78l-5 12M122 78l-5 12"/></g>
+    <path d="M0 160C30 150 50 112 82 104s46 14 70 6 34-18 44-22V196H0z" fill="rgba(255,255,255,.04)"/><path d="M118 108c12 2 22-6 34-6s26-8 44-14V196H118z" fill="url(#hp)"/>
+    <path d="M0 160C30 150 50 112 82 104s46 14 70 6 34-18 44-22" class="sk"/><path d="M118 108c14 0 30-10 78-20" stroke="#f0a04b" stroke-width="2.2" fill="none"/>
+    <path d="M40 150v-9l7-6 7 6v9M72 120v-9l7-6 7 6v9" class="sk"/></symbol>
+  <symbol id="art-resp" viewBox="0 0 196 196"><path d="M0 150C26 140 46 90 84 82s40 30 70 34 30-6 42-10V196H0z" fill="rgba(255,255,255,.04)"/>
+    <path d="M78 84c6 22 22 44 50 52l-6 60H40z" fill="url(#hr)"/><path d="M0 150C26 140 46 90 84 82s40 30 70 34 30-6 42-10" class="sk"/>
+    <path d="M84 82c6 24 22 46 50 54" stroke="#ff6b5f" stroke-width="2.2" fill="none"/>
+    <g transform="translate(130 150)"><rect x="0" y="-14" width="34" height="14" rx="3" class="sk"/><path d="M34 -10h8l6 6v4H34" class="sk"/><circle cx="8" cy="2" r="3.5" class="sk"/><circle cx="38" cy="2" r="3.5" class="sk"/></g>
+    <path d="M120 166h-28" stroke="#e6e9e6" stroke-width="1.4" stroke-dasharray="3 4"/><circle cx="148" cy="56" r="14" fill="none" stroke="#ff6b5f" stroke-width="1.6"/><path d="M148 48v9M148 62v.5" stroke="#ff6b5f" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="art-rec" viewBox="0 0 196 196"><path d="M0 154C34 146 60 120 98 118s62 18 98 10V196H0z" fill="rgba(255,255,255,.04)"/><path d="M0 154C34 146 60 120 98 118s62 18 98 10" class="sk"/>
+    <path d="M44 146v-12l10-8 10 8v12M86 126v-12l10-8 10 8v12M126 128v-12l10-8 10 8v12" class="sk"/>
+    <circle cx="98" cy="58" r="30" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><path d="M98 28a30 30 0 1 1-28 40" fill="none" stroke="#7bd88f" stroke-width="6" stroke-linecap="round"/>
+    <text x="98" y="64" text-anchor="middle" fill="#f2f4f2" font-family="Outfit" font-size="17" font-weight="300">68%</text></symbol>
+</defs></svg>
+
+<!-- ======================= A · Tiles ======================= -->
+<section class="opt" id="a">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="a-h">
+    <button class="x" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 id="a-h">Which phase?</h2>
+    <p class="sub">WYN-2026-001 · Landslide &amp; flash flood · same event, a different lens</p>
+    <div class="tiles" role="radiogroup" aria-label="Phase">
+      <a class="tile" href="#" role="radio" aria-checked="false"><span class="art"><svg><use href="#art-prep"/></svg></span>
+        <span class="nm"><i style="background:var(--prep)"></i>Prepare</span><span class="pp">Before the storm · readiness plan</span>
+        <span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done · +1 lesson</span></a>
+      <a class="tile" href="#" role="radio" aria-checked="false"><span class="art"><svg><use href="#art-resp"/></svg></span>
+        <span class="nm"><i style="background:var(--resp)"></i>Respond</span><span class="pp">During the event · rescue and dispatch</span>
+        <span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done · handed over Day 1</span></a>
+      <a class="tile cur" href="#" role="radio" aria-checked="true"><span class="art"><svg><use href="#art-rec"/></svg><span class="now-tag">You're here</span></span>
+        <span class="nm"><i style="background:var(--rec)"></i>Recover</span><span class="pp">After · relief, restoration, lessons</span>
+        <span class="st now">Now <span class="cnt w">6</span> unserved</span></a>
+    </div>
+    <div class="foot"><span>Ananya Menon · Incident Commander · <a href="#">Switch role</a></span><span><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</span></div>
+  </div>
+</section>
+
+<!-- ======================= B · Timeline ======================= -->
+<section class="opt" id="b">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="b-h">
+    <button class="x" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 id="b-h">Move between phases</h2>
+    <p class="sub">One event, three lenses · WYN-2026-001 · you're in Recover</p>
+    <div class="track" aria-hidden="true"><span class="ln"></span><span class="fill"></span>
+      <span class="node done" style="left:16.6%"></span><span class="when" style="left:16.6%">Day 0 · 06:00</span>
+      <span class="node done" style="left:50%"></span><span class="when" style="left:50%">Day 0 · 12:06</span>
+      <span class="node cur" style="left:83.4%"></span><span class="when" style="left:83.4%">Day 1 · 08:00 → now</span></div>
+    <div class="cards" role="radiogroup" aria-label="Phase">
+      <a class="card" href="#" role="radio" aria-checked="false"><h3>Prepare <span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done</span></h3>
+        <ul><li>Before the storm · readiness plan</li><li><b>5 of 5</b> readiness tasks done</li><li><b>+1</b> lesson waiting from Recover</li></ul><span class="open">Open Prepare</span></a>
+      <a class="card" href="#" role="radio" aria-checked="false"><h3>Respond <span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done</span></h3>
+        <ul><li>During the event · rescue and dispatch</li><li>Rescue complete at km 7</li><li>Handed over to Recover, Day 1 08:00</li></ul><span class="open">Open Respond</span></a>
+      <a class="card cur" href="#" role="radio" aria-checked="true"><h3>Recover <span class="st now">Now</span></h3>
+        <ul><li>After · relief, restoration, lessons</li><li><b>6</b> needs still unserved <span class="cnt w" style="vertical-align:1px">6</span></li><li>Chooralmala ward 11 may be missed</li></ul><span class="open">Stay in Recover</span></a>
+    </div>
+    <div class="foot"><span>Ananya Menon · Incident Commander · <a href="#">Switch role</a></span><span><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</span></div>
+  </div>
+</section>
+
+<!-- ======================= C · List + live preview ======================= -->
+<section class="opt" id="c">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="c-h">
+    <button class="x" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div>
+      <h2 id="c-h">Switch phase</h2>
+      <p class="sub">WYN-2026-001 · preview before you go</p>
+      <div class="list" role="listbox" aria-label="Phase">
+        <a class="row" href="#" role="option" aria-selected="false"><span class="ic"><svg viewBox="0 0 196 196"><use href="#art-prep"/></svg></span><span><b>Prepare</b><span class="p">Before the storm</span></span><span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done</span></a>
+        <a class="row sel" href="#" role="option" aria-selected="true"><span class="ic"><svg viewBox="0 0 196 196"><use href="#art-resp"/></svg></span><span><b>Respond</b><span class="p">During the event</span></span><span class="st done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>Done</span></a>
+        <a class="row" href="#" role="option" aria-selected="false"><span class="ic"><svg viewBox="0 0 196 196"><use href="#art-rec"/></svg></span><span><b>Recover</b><span class="p">After · you're here</span></span><span class="st now">Now <span class="cnt w">6</span></span></a>
+      </div>
+      <p class="k" style="margin-top:18px">Ananya Menon · Incident Commander · <a href="#" style="color:var(--ink)">Switch role</a></p>
+    </div>
+    <div class="pv">
+      <div class="pv-h"><b style="font-weight:300;font-size:20px">Respond · rescue and dispatch</b><span class="k">Day 0 · 12:10</span></div>
+      <div class="shot"><iframe src="../resilienceops.html?phase=respond&notour&api=http://localhost:9" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="go"><div class="wait"><span>Rescue complete at km 7</span><span>Handed over Day 1 08:00</span></div><span class="btn">Open Respond</span></div>
+    </div>
+  </div>
+</section>
+<script>
+  const show = () => { const id = (location.hash || '#a').slice(1); document.querySelectorAll('.opt').forEach(o => o.classList.toggle('on', o.id === id)); document.querySelectorAll('#pick a').forEach(a => a.setAttribute('aria-current', a.hash === '#' + id)); };
+  addEventListener('hashchange', show); show();
+</script>
+</body>
+</html>

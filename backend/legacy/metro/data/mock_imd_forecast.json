@@ -1,0 +1,51 @@
+{
+  "source": "India Meteorological Department (SIMULATED DATA — NOT REAL)",
+  "issued_at": "2025-07-14T06:00:00+05:30",
+  "valid_from": "2025-07-14T06:00:00+05:30",
+  "valid_until": "2025-07-15T06:00:00+05:30",
+  "district": "Metro District",
+  "state": "Maharashtra",
+  "alert_level": "RED",
+  "alert_type": "Extremely Heavy Rainfall Warning",
+  "imd_warning_code": "RED-EHR-2025-07-14",
+  "forecast_periods": [
+    {
+      "period": "0-6h",
+      "label": "Next 6 hours",
+      "rainfall_expected_mm": 80,
+      "intensity": "Heavy",
+      "thunderstorm_risk": true,
+      "wind_speed_kmh": 45
+    },
+    {
+      "period": "6-12h",
+      "label": "6 to 12 hours",
+      "rainfall_expected_mm": 120,
+      "intensity": "Very Heavy",
+      "thunderstorm_risk": true,
+      "wind_speed_kmh": 55
+    },
+    {
+      "period": "12-18h",
+      "label": "12 to 18 hours",
+      "rainfall_expected_mm": 95,
+      "intensity": "Very Heavy",
+      "thunderstorm_risk": false,
+      "wind_speed_kmh": 40
+    },
+    {
+      "period": "18-24h",
+      "label": "18 to 24 hours",
+      "rainfall_expected_mm": 40,
+      "intensity": "Moderate",
+      "thunderstorm_risk": false,
+      "wind_speed_kmh": 25
+    }
+  ],
+  "cumulative_24h_mm": 335,
+  "extreme_heavy_threshold_mm": 204,
+  "confidence_level": "HIGH",
+  "agency_remarks": "Extremely heavy to very heavy rainfall expected over Metro District in the next 18 hours. Low-lying areas and areas with inadequate drainage are at high risk of urban flooding. Urban flash flooding possible in 6-12 hour window.",
+  "data_quality": "OFFICIAL",
+  "next_update": "2025-07-14T12:00:00+05:30"
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prepare readiness ring</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* MOCKUP for review (17 Oct 2026): the Prepare place detail, opened from a place tile's ↗.
+     Same anatomy as the Recover coverage ring; content is readiness before the peak. Data simulated. */
+  :root { --page:#111413; --rail:#161918; --card:#1e2221; --hair:rgba(255,255,255,.07); --hair-2:rgba(255,255,255,.12); --ink:#f2f4f2; --ink-2:#b9c0bb;
+    --critical:#ff6b5f; --warning:#f0a04b; --ok:#7bd88f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--page); color: var(--ink); font: 400 14px/1.4 Outfit, system-ui, sans-serif; padding: 28px; }
+  h1 { font-size: 22px; font-weight: 300; } .intro { margin: 6px 0 22px; max-width: 900px; color: var(--ink-2); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 436px); gap: 18px; }
+  .card { background: var(--card); border: 1px solid var(--hair); border-radius: 26px; padding: 18px 18px 14px; height: 560px; display: flex; flex-direction: column; }
+  .cd-h { display: grid; grid-template-columns: 1fr 36px; align-items: start; gap: 10px; }
+  .cd-h h2 { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 400; }
+  .rank { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,.12); }
+  .rank.crit { background: var(--critical); color: #1b0f0e; } .rank.warn { background: var(--warning); color: #24160a; }
+  .cd-h p { margin-top: 2px; font-size: 12px; color: var(--ink-2); }
+  .back { width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--hair); background: rgba(255,255,255,.06); color: var(--ink); display: grid; place-items: center; }
+  .back svg { width: 16px; height: 16px; }
+  .st { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 14px; }
+  .st .w { display: inline-flex; align-items: center; gap: 6px; } .st svg { width: 14px; height: 14px; }
+  .st .r { font-size: 13px; color: var(--ink-2); } .st .r b { font-weight: 400; color: var(--ink); }
+  .win { margin-top: 6px; display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); }
+  .win b { font-weight: 400; color: var(--warning); }
+  .fig { flex: 1 1 0; min-height: 0; margin: 2px -10px 0; }
+  .fig svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .rk { stroke: rgba(255,255,255,.14); stroke-width: 1.2; stroke-linecap: round; } .rkM { stroke: rgba(255,255,255,.4); stroke-width: 1.6; }
+  .glow { opacity: .36; } .badge-bg { fill: #1a1d1c; stroke-width: 1.6; } .ico { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .lab { fill: var(--ink); font: 500 15px Outfit, sans-serif; } .word { font: 500 14px Outfit, sans-serif; }
+  .inner { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 4; } .innerfill { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+  .innerdot { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .pct { fill: var(--ink); font: 200 46px Outfit, sans-serif; letter-spacing: -.02em; } .cap { fill: var(--ink-2); font: 400 13px Outfit, sans-serif; }
+  .legend { list-style: none; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; padding-top: 10px; border-top: 1px solid var(--hair); font-size: 13px; }
+  .legend li { display: inline-flex; align-items: center; gap: 6px; } .legend svg { width: 14px; height: 14px; } .legend b { font-weight: 500; } .legend span { color: var(--ink); }
+  .by { margin-top: 6px; font-size: 11px; color: var(--ink-2); }
+</style></head>
+<body>
+<h1>Prepare · place detail (readiness ring) — mockup</h1>
+<p class="intro">Opens from the ↗ on any of the four place tiles and takes the tiles' space in the left column; ↑ goes back to the tiles. Six readiness essentials around the ring, each filled by how ready it is for the peak window. Centre = average readiness. Simulated data, from the Prepare plan (tasks, capacity check, forecast).</p>
+<div class="grid" id="grid"></div>
+<script>
+const P = [
+  { id: 'meppadi', rank: 1, lvl: 'crit', name: 'Meppadi', sub: 'Steep slopes · Vythiri taluk', risk: 'Critical risk', exp: '2.0–3.5k', win: '15:00–21:00', tasks: [1, 5], by: 'Preparedness Agent · 06:20 · exposure estimated',
+    r: { warning: 100, shelter: 60, supplies: 29, rescue: 50, road: 0, medical: 100 },
+    fig: { warning: 'Red alert broadcast 06:05', shelter: 'Camp for 450 · beds ready', supplies: 'Water 14 of 48 h', rescue: 'FR-02 on standby, not staged', road: 'km 7 not inspected', medical: 'Ambulance 108-04 at WIMS' } },
+  { id: 'vythiri', rank: 2, lvl: 'warn', name: 'Vythiri', sub: 'Flood plain · Vythiri taluk', risk: 'High risk', exp: '1.2–2.0k', win: '14:00–20:00', tasks: [2, 4], by: 'Preparedness Agent · 06:20 · exposure estimated',
+    r: { warning: 100, shelter: 80, supplies: 70, rescue: 40, road: 100, medical: 50 },
+    fig: { warning: 'Alert sent · loudspeaker van', shelter: 'School camp 80% set up', supplies: '34 of 48 h stocked', rescue: 'Boats requested, 1 of 2', road: 'NH 766 open', medical: 'PHC on call, no ambulance' } },
+  { id: 'mananthavady', rank: 3, lvl: 'warn', name: 'Mananthavady', sub: 'River banks · north Wayanad', risk: 'High risk', exp: '0.8–1.5k', win: '16:00–23:00', tasks: [1, 3], by: 'Preparedness Agent · 06:20 · exposure estimated',
+    r: { warning: 100, shelter: 50, supplies: 60, rescue: 0, road: 70, medical: null },
+    fig: { warning: 'Alert sent 06:10', shelter: 'Camp generator fuel not confirmed', supplies: '29 of 48 h stocked', rescue: 'No team assigned', road: 'River road watch', medical: 'Not in plan yet' } },
+  { id: 'kalpetta', rank: 4, lvl: 'neutral', name: 'Kalpetta', sub: 'Hill roads · district HQ', risk: 'Moderate risk', exp: '0.3–0.6k', win: '17:00–22:00', tasks: [0, 2], by: 'Preparedness Agent · 06:20 · exposure estimated',
+    r: { warning: 50, shelter: 100, supplies: 100, rescue: 100, road: 40, medical: 100 },
+    fig: { warning: 'Hill wards not yet alerted', shelter: 'District camp ready', supplies: '48 h stocked', rescue: 'Fire station on site', road: 'Hill road slips likely', medical: 'District hospital' } }
+];
+const NEEDS = [['warning', 'Warning'], ['shelter', 'Shelter'], ['medical', 'Medical'], ['rescue', 'Rescue'], ['road', 'Road'], ['supplies', 'Supplies']];
+const state = v => v == null ? 'unk' : v >= 90 ? 'ok' : v >= 40 ? 'part' : 'gap';
+const COL = { gap: 'var(--critical)', part: 'var(--warning)', ok: 'var(--ok)', unk: 'var(--ink-2)' };
+const WORD = { gap: 'Not ready', part: 'In progress', ok: 'Ready', unk: 'Not planned' };
+const BADGE = {
+  warning: '<path d="M-6.5 3.5V-2.5L5-7.5V8.5L-6.5 3.5Z"/><path d="M-6.5-2.5h-1.6v6h1.6"/>',
+  shelter: '<path d="M0-6.8-7.2 6.2h14.4Z"/><path d="M0 1.4-2.4 6.2M0 1.4 2.4 6.2"/>',
+  medical: '<rect x="-6.5" y="-6.5" width="13" height="13" rx="3"/><path d="M0-3.4v6.8M-3.4 0h6.8"/>',
+  rescue: '<circle r="6.8"/><circle r="2.8"/><path d="M0-6.8v4M0 2.8v4M-6.8 0h4M2.8 0h4"/>',
+  road: '<path d="M-3.4-7.6-6.4 7.6M3.4-7.6 6.4 7.6"/><path d="M0-6.4v2.4M0-1.2v2.4M0 4v2.4"/>',
+  supplies: '<path d="M-7-3h14v10H-7Z"/><path d="M-7-3l2.5-4.5h9L7-3M0-3v10"/>'
+};
+const SG = { gap: '<svg viewBox="0 0 24 24"><path d="M12 3 22.5 20.5h-21z" fill="currentColor"/></svg>', part: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+  ok: '<svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>', unk: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2 2.4"/></svg>' };
+const LAB = [[293, 48, 'start'], [366, 154, 'start'], [293, 260, 'start'], [147, 260, 'end'], [74, 154, 'end'], [147, 48, 'end']];
+const rad = a => a * Math.PI / 180, f = n => Math.round(n * 10) / 10, pt = (r, a) => [220 + r * Math.sin(rad(a)), 156 - r * Math.cos(rad(a))];
+const sector = (a0, a1) => { const l = a1 - a0 > 180 ? 1 : 0, [x0, y0] = pt(106, a0), [x1, y1] = pt(106, a1), [x2, y2] = pt(80, a1), [x3, y3] = pt(80, a0);
+  return `M${f(x0)} ${f(y0)}A106 106 0 ${l} 1 ${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}A80 80 0 ${l} 0 ${f(x3)} ${f(y3)}Z`; };
+const and = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+document.getElementById('grid').innerHTML = P.map(p => {
+  const vals = NEEDS.map(([k]) => p.r[k]).filter(v => v != null), avg = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  let ticks = ''; for (let a = 0; a < 360; a += 3) { const M = a % 60 === 0, [x0, y0] = pt(113, a), [x1, y1] = pt(M ? 121 : 116, a); ticks += `<line x1="${f(x0)}" y1="${f(y0)}" x2="${f(x1)}" y2="${f(y1)}" class="${M ? 'rk rkM' : 'rk'}"/>`; }
+  let glow = '', segs = '';
+  NEEDS.forEach(([k, l], i) => { const v = p.r[k], s = state(v), c = COL[s], a0 = i * 60 + 2, a1 = i * 60 + 58, [bx, by] = pt(93, i * 60 + 30), [lx, ly, an] = LAB[i];
+    const base = s === 'gap' ? `<path d="${sector(a0, a1)}" fill="url(#h-${p.id})" stroke="var(--critical)" stroke-width="1.6"/>` : s === 'unk' ? `<path d="${sector(a0, a1)}" fill="rgba(255,255,255,.04)" stroke="var(--ink-2)" stroke-width="1.4" stroke-dasharray="3 4"/>` : `<path d="${sector(a0, a1)}" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/>`;
+    const fill = (s === 'part' || s === 'ok') ? `<path d="${sector(a0, a0 + (a1 - a0) * v / 100)}" fill="${c}" stroke="${c}" stroke-width="1.6"/>` : '';
+    if (s === 'gap') glow += `<path class="glow" d="${sector(a0, a1)}" fill="var(--critical)" filter="url(#g-${p.id})"/>`;
+    segs += `${base}${fill}<g transform="translate(${f(bx)} ${f(by)})"><circle r="12" class="badge-bg" stroke="${c}"/><g class="ico" stroke="${c}" transform="scale(.82)">${BADGE[k]}</g></g>
+      <text class="lab" x="${lx}" y="${ly}" text-anchor="${an}">${l}</text><text class="word" x="${lx}" y="${ly + 18}" text-anchor="${an}" fill="${c}">${WORD[s]}</text>`; });
+  const [dx, dy] = pt(64, avg * 3.6);
+  const by = s => NEEDS.filter(([k]) => state(p.r[k]) === s).map(([, l]) => l.toLowerCase());
+  const legend = [['gap', 'Not ready'], ['part', 'In progress'], ['unk', 'Not planned'], ['ok', 'Ready']].filter(([s]) => by(s).length).slice(0, 2)
+    .map(([s, w]) => `<li style="color:${COL[s]}">${SG[s]}<b>${w}</b><span>${and(by(s))}</span></li>`).join('');
+  const tone = p.lvl === 'crit' ? 'var(--critical)' : p.lvl === 'warn' ? 'var(--warning)' : 'var(--ink-2)';
+  return `<article class="card"><div class="cd-h"><div><h2><span class="rank ${p.lvl}">${p.rank}</span>${p.name}</h2><p>${p.sub}</p></div>
+      <span class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></span></div>
+    <div class="st"><span class="w" style="color:${tone}">${p.lvl === 'neutral' ? SG.unk.replace('stroke-dasharray="2 2.4"', '') : SG.gap}${p.risk}</span><span class="r"><b>${p.exp}</b> may be exposed</span></div>
+    <p class="win"><span>Peak risk <b>${p.win}</b></span><span>Plan tasks ${p.tasks[0]} of ${p.tasks[1]} done</span></p>
+    <div class="fig"><svg viewBox="0 0 440 312" preserveAspectRatio="xMidYMid meet"><defs>
+      <pattern id="h-${p.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="rgba(110,38,33,.55)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--critical)" stroke-width="1.6" opacity=".6"/></pattern>
+      <filter id="g-${p.id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="7"/></filter>
+      <radialGradient id="bg-${p.id}"><stop offset="0" stop-color="#262a28"/><stop offset="1" stop-color="#1e2221"/></radialGradient></defs>
+      <circle cx="220" cy="156" r="124" fill="url(#bg-${p.id})"/>${ticks}${glow}${segs}
+      <circle cx="220" cy="156" r="64" class="inner"/><circle class="innerfill" cx="220" cy="156" r="64" pathLength="100" stroke-dasharray="${avg} 100" transform="rotate(-90 220 156)"/><circle class="innerdot" cx="${f(dx)}" cy="${f(dy)}" r="4"/>
+      <text class="pct" x="220" y="163" text-anchor="middle">${avg}</text><text class="cap" x="220" y="185" text-anchor="middle">% ready</text></svg></div>
+    <ul class="legend">${legend}</ul><p class="by">${p.by}</p></article>`;
+}).join('');
+</script>
+</body></html>

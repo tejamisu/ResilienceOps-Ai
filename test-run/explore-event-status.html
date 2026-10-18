@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event status options</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --page:#111413; --rail:#161918; --card:#1e2221; --card-hi:#252a28; --hair:rgba(255,255,255,.07); --hair-2:rgba(255,255,255,.12);
+    --ink:#f2f4f2; --ink-2:#b9c0bb; --ink-3:#8a928d; --critical:#ff6b5f; --warning:#f0a04b; --ok:#7bd88f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--page); color: var(--ink); font-family: Outfit, system-ui, sans-serif; -webkit-font-smoothing: antialiased; padding: 36px 40px 48px; }
+  h1 { font-size: 26px; font-weight: 300; }
+  .intro { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+  .board { display: grid; grid-template-columns: repeat(3, 468px); gap: 32px; margin-top: 28px; align-items: start; }
+  .opt h2 { font-size: 17px; font-weight: 400; }
+  .opt p.d { font-size: 13px; color: var(--ink-2); margin: 4px 0 14px; line-height: 1.45; min-height: 57px; }
+  .rail { background: var(--rail); border-radius: 22px; padding: 16px; }
+  .c { position: relative; background: var(--card); border: 1px solid var(--hair); border-radius: 26px; padding: 18px 20px 18px; overflow: hidden; }
+  .hd { display: flex; align-items: center; justify-content: space-between; }
+  .hd h3 { font-size: 15px; font-weight: 400; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--hair-2); }
+  .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 0 3px rgba(240,160,75,.2); }
+  .hero { display: flex; align-items: baseline; gap: 8px; margin-top: 10px; }
+  .hero b { font-size: 46px; font-weight: 200; line-height: .95; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .hero span { font-size: 15px; font-weight: 300; color: var(--ink-2); }
+  .delta { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+  .delta svg { width: 10px; height: 10px; }
+  svg.viz { display: block; width: 100%; overflow: visible; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 6px; text-align: center; }
+  .stats span { display: block; font-size: 12px; color: var(--ink-2); }
+  .stats b { display: block; margin-top: 2px; font-size: 17px; font-weight: 300; font-variant-numeric: tabular-nums; }
+  .why { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin-top: 14px; }
+  .why b { color: var(--ink); font-weight: 400; }
+  .rec { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--ink); color: #141716; font-weight: 500; vertical-align: 2px; }
+  /* current, for comparison */
+  .ev-steps { list-style: none; margin-top: 12px; }
+  .ev-steps li { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px; min-height: 34px; font-size: 13px; }
+  .ev-steps i { width: 12px; height: 12px; margin-left: 4px; border-radius: 50%; border: 1.5px solid var(--ink-2); }
+  .ev-steps .done i { background: var(--ok); border-color: var(--ok); } .ev-steps .now i { border-color: var(--warning); } .ev-steps .now b { color: var(--warning); font-weight: 400; }
+  .ev-steps span { font-size: 12px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+  <h1>Event status · two directions</h1>
+  <p class="intro">Same facts in both: the event moved Watch → Prepare → Active → Stabilising and has been in Recovery since Day 1 08:00 (45 h since the landslide). Shown at real rail size, in our tokens.</p>
+  <div class="board">
+    <section class="opt">
+      <h2>Now · stepped list</h2>
+      <p class="d">For comparison. Reads as a to-do list: every stage has the same weight and the one that matters (where we are now, and for how long) is easy to miss.</p>
+      <div class="rail"><div class="c"><div class="hd"><h3>Event status</h3></div>
+        <ol class="ev-steps"><li class="done"><i></i><b>Watch</b><span>Day 0 · 06:00</span></li><li class="done"><i></i><b>Prepare</b><span>Day 0 · 06:20</span></li><li class="done"><i></i><b>Active</b><span>Day 0 · 12:06</span></li><li class="done"><i></i><b>Stabilising</b><span>Day 0 · 18:00</span></li><li class="now"><i></i><b>Recovery</b><span>since Day 1 · 08:00</span></li><li><i></i><b style="font-weight:400;color:var(--ink-2)">Closed</b><span>not yet</span></li></ol></div></div>
+    </section>
+
+    <section class="opt">
+      <h2>A · Lifecycle arc</h2>
+      <p class="d">After the arc gauge reference. One arc from Watch to Closed: done stages as dots on a solid line, a marker at Recovery, dashed ahead. The hero says how long the event has run; three numbers say how recovery is going.</p>
+      <div class="rail"><div class="c" id="a"></div></div>
+      <p class="why"><b>Good:</b> where we are on the whole journey is one glance; the three numbers turn status into progress. <b>Watch:</b> stages are evenly spaced, so it shows order, not duration.</p>
+    </section>
+
+    <section class="opt">
+      <h2>B · Severity curve <span class="rec">Recommended</span></h2>
+      <p class="d">After the curve reference. A line of event severity over time (Watch → peak at the landslide → easing into Recovery), stages labelled where they began, a glowing Now dot with a dashed drop to the time axis.</p>
+      <div class="rail"><div class="c" id="b"></div></div>
+      <p class="why"><b>Good:</b> it's a real timeline: you see how fast it escalated, when it peaked and that it's easing, which a list can't show. <b>Watch:</b> the severity level is a DDMA assessment, so the curve needs its source in the label.</p>
+    </section>
+  </div>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const tri = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 9 9.5 1h-9z" fill="#7bd88f"/></svg>';
+
+/* ---------- A: lifecycle arc ---------- */
+(() => {
+  const W = 396, H = 150, cx = W / 2, cy = 168, r = 150;
+  const a0 = Math.PI * 1.13, a1 = Math.PI * 1.87;           // arc from left to right (top half)
+  const P = t => { const a = a0 + (a1 - a0) * t; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+  const ST = ['Watch', 'Prepare', 'Active', 'Stabilising', 'Recovery', 'Closed'], NOW = 4;
+  const t = i => i / (ST.length - 1);
+  const arc = (from, to, R = r) => { const s = a0 + (a1 - a0) * from, e = a0 + (a1 - a0) * to; return `M${cx + R * Math.cos(s)} ${cy + R * Math.sin(s)} A${R} ${R} 0 0 1 ${cx + R * Math.cos(e)} ${cy + R * Math.sin(e)}`; };
+  let g = `<path d="${arc(0, 1, r + 14)}" fill="none" stroke="rgba(255,255,255,.18)" stroke-dasharray="1 4"/>`;
+  g += `<path d="${arc(0, t(NOW))}" fill="none" stroke="#f2f4f2" stroke-width="2" stroke-linecap="round"/>`;
+  g += `<path d="${arc(t(NOW), 1)}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-dasharray="4 5"/>`;
+  // ruler ticks outside the arc
+  for (let k = 0; k <= 30; k++) { const a = a0 + (a1 - a0) * k / 30, r1 = r + 6, r2 = r + (k % 6 ? 9 : 13); g += `<line x1="${cx + r1 * Math.cos(a)}" y1="${cy + r1 * Math.sin(a)}" x2="${cx + r2 * Math.cos(a)}" y2="${cy + r2 * Math.sin(a)}" stroke="rgba(255,255,255,${k / 30 <= t(NOW) ? .45 : .18})"/>`; }
+  ST.forEach((s, i) => {
+    const [x, y] = P(t(i)), now = i === NOW, done = i < NOW;
+    if (now) g += `<circle cx="${x}" cy="${y}" r="10" fill="rgba(240,160,75,.22)"/><circle cx="${x}" cy="${y}" r="5.5" fill="#f0a04b"/>`;
+    else g += `<circle cx="${x}" cy="${y}" r="${done ? 3.5 : 3.5}" fill="${done ? '#f2f4f2' : 'none'}" stroke="${done ? 'none' : '#b9c0bb'}" stroke-width="1.5"/>`;
+    // labels sit inside the arc, nudged away from the line on each side
+    const side = x < cx - 40 ? 1 : x > cx + 40 ? -1 : 0, ly = y + (now ? 26 : 22) + (side ? 4 : 0), lx = x + side * 12;
+    g += `<text x="${lx}" y="${ly}" text-anchor="${side > 0 ? 'start' : side < 0 ? 'end' : 'middle'}" fill="${now ? '#f0a04b' : done ? '#b9c0bb' : '#8a928d'}" font-size="${now ? 13 : 11}" font-family="Outfit">${s}</text>`;
+  });
+  document.getElementById('a').innerHTML = `<div class="hd"><h3>Event status</h3><span class="pill"><i></i>Recovery</span></div>
+    <p class="hero"><b>45</b><span>h since the landslide</span></p>
+    <p class="delta">In Recovery for 25 h · next: Closed</p>
+    <svg class="viz" viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Event lifecycle: Watch, Prepare, Active and Stabilising done; now in Recovery; Closed next">${g}</svg>
+    <div class="stats"><div><span>Covered</span><b>68%</b></div><div><span>Still in need</span><b>2,140</b></div><div><span>Open items</span><b>6</b></div></div>`;
+})();
+
+/* ---------- B: severity curve over time ---------- */
+(() => {
+  const W = 396, H = 170, L = 6, R = 64, T = 18, B = 140;
+  // hours from Day 0 00:00; severity 0–4 (DDMA assessment, simulated)
+  const PTS = [[6, 1], [6.3, 1.4], [9, 1.6], [12, 2.2], [12.1, 3.9], [15, 4], [18, 3.1], [24, 2.6], [32, 2.1], [44, 1.7], [57, 1.35]];
+  const X0 = 6, X1 = 60, x = h => L + (W - L - R) * (h - X0) / (X1 - X0), y = v => B - (B - T) * v / 4;
+  // smooth path (Catmull-Rom → Bezier)
+  const pts = PTS.map(([h, v]) => [x(h), y(v)]);
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += ` C${p1[0] + (p2[0] - p0[0]) / 6} ${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6} ${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]} ${p2[1]}`;
+  }
+  let g = '';
+  ['Low', 'Moderate', 'High', 'Critical'].forEach((l, i) => { const Y = y(i + 1); g += `<line x1="${L}" x2="${W - R + 4}" y1="${Y}" y2="${Y}" stroke="rgba(255,255,255,.12)" stroke-dasharray="4 5"/><text x="${W}" y="${Y + 4}" text-anchor="end" fill="#8a928d" font-size="11" font-family="Outfit">${l}</text>`; });
+  // phase bands: Recovery tinted
+  g += `<rect x="${x(32)}" y="${T - 6}" width="${x(60) - x(32)}" height="${B - T + 6}" fill="rgba(255,255,255,.035)" rx="8"/>`;
+  g += `<path d="${d}" fill="none" stroke="#f2f4f2" stroke-width="1.6" stroke-linecap="round"/>`;
+  // stage markers where each began
+  [['Watch · Prepare', 6, 1, 'below-start'], ['Active', 12.1, 3.9, 'left'], ['Stabilising', 18, 3.1, 'right'], ['Recovery', 32, 2.1, 'above']].forEach(([s, h, v, side]) => {
+    const X = x(h), Y = y(v);
+    g += `<circle cx="${X}" cy="${Y}" r="3.5" fill="#f2f4f2"/>`;
+    const tx = side === 'left' ? X - 8 : side === 'right' ? X + 8 : side === 'below-start' ? X - 2 : X, ty = side.startsWith('below') ? Y + 18 : side === 'above' ? Y - 10 : Y + 4;
+    g += `<text x="${tx}" y="${ty}" text-anchor="${side === 'left' ? 'end' : side === 'right' || side === 'below-start' ? 'start' : 'middle'}" fill="#b9c0bb" font-size="11" font-family="Outfit">${s}</text>`;
+  });
+  // now
+  const NX = x(57), NY = y(1.35);
+  g += `<line x1="${NX}" x2="${NX}" y1="${NY}" y2="${B + 6}" stroke="#f0a04b" stroke-dasharray="3 3"/><circle cx="${NX}" cy="${B + 6}" r="3" fill="#f0a04b"/>`;
+  g += `<circle cx="${NX}" cy="${NY}" r="11" fill="rgba(240,160,75,.22)"/><circle cx="${NX}" cy="${NY}" r="5.5" fill="#f0a04b"/>`;
+  g += `<text x="${NX - 14}" y="${NY - 12}" text-anchor="end" fill="#f0a04b" font-size="12" font-family="Outfit">Now</text>`;
+  // time axis
+  [[6, 'D0 06:00'], [24, 'Day 1'], [48, 'Day 2']].forEach(([h, l]) => { g += `<text x="${x(h)}" y="${H - 4}" text-anchor="${h === 6 ? 'start' : 'middle'}" fill="#b9c0bb" font-size="11" font-family="Outfit">${l}</text>`; });
+  document.getElementById('b').innerHTML = `<div class="hd"><h3>Event status</h3><span class="pill"><i></i>Recovery</span></div>
+    <p class="hero"><b>Moderate</b><span>severity, easing</span></p>
+    <p class="delta">${tri}Down from Critical at 12:02 Day 0 · 45 h ago</p>
+    <svg class="viz" viewBox="0 0 ${W} ${H}" height="${H}" style="margin-top:10px" role="img" aria-label="Severity over time: Low at Watch, Critical at the landslide on Day 0 12:02, easing through Stabilising to Moderate in Recovery now">${g}</svg>
+    <p class="delta" style="margin-top:4px;font-size:11px">Severity · DDMA assessment · Simulated</p>`;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111413">
+<title>Field tasks · ResilienceOps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=Noto+Sans+Malayalam:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Field responder app (Tier 4): a phone screen for the team on the ground. Same tokens as the command app. */
+  :root { --page: #111413; --card: #1e2221; --card-hi: #262b29; --hair: rgba(255,255,255,.07); --hair-2: rgba(255,255,255,.14);
+    --ink: #f2f4f2; --ink-2: #b9c0bb; --critical: #ff6b5f; --critical-bg: rgba(110,38,33,.45); --warning: #f0a04b; --ok: #7bd88f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { min-height: 100dvh; background: #0b0d0c; color: var(--ink); font: 15px/1.45 Outfit, system-ui, sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+  :lang(ml), body.ml { font-family: Outfit, "Noto Sans Malayalam", system-ui, sans-serif; }
+  .phone { max-width: 430px; min-height: 100dvh; margin: 0 auto; background: var(--page); display: flex; flex-direction: column; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  @media (min-width: 600px) { body { padding: 24px 0; } .phone { min-height: calc(100dvh - 48px); border-radius: 36px; box-shadow: 0 0 0 1px var(--hair-2), 0 30px 80px -20px #000; overflow: hidden; } }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* top: who I am, language, connection */
+  .top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 14px 16px 12px; background: rgba(17,20,19,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--hair); }
+  .top .who { flex: 1; min-width: 0; } .top .who b { display: block; font-size: 15px; font-weight: 500; } .top .who span { font-size: 12.5px; color: var(--ink-2); }
+  .lang { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--card); border: 1px solid var(--hair-2); }
+  .lang button { min-width: 44px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 999px; background: none; color: var(--ink-2); font-size: 13px; cursor: pointer; }
+  .lang button[aria-pressed="true"] { background: var(--card-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--hair-2); }
+  .net { display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; color: var(--ink-2); }
+  .net i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); } .net.sim i { background: var(--warning); }
+
+  main { flex: 1; padding: 6px 16px 24px; }
+  h1 { font-size: 26px; font-weight: 300; margin: 8px 0 4px; } .lead { color: var(--ink-2); font-size: 13.5px; margin-bottom: 14px; }
+  .tlist { list-style: none; display: grid; gap: 10px; }
+  .task { width: 100%; text-align: left; display: grid; gap: 6px; padding: 14px 16px; border-radius: 22px; background: var(--card); border: 1px solid var(--hair); cursor: pointer; }
+  .task.crit { background: var(--critical-bg); border-color: rgba(255,107,95,.25); }
+  .task .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .task b { font-size: 16px; font-weight: 400; line-height: 1.3; } .task .m { font-size: 13px; color: var(--ink-2); }
+  .st { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; white-space: nowrap; flex: none; }
+  .st svg { width: 12px; height: 12px; }
+  .st.new { color: var(--critical); } .st.acc, .st.move { color: var(--warning); } .st.site { color: var(--ink); } .st.done { color: var(--ok); }
+
+  /* task detail */
+  .back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 0; background: none; color: var(--ink); font-size: 14px; cursor: pointer; }
+  .back svg { width: 18px; height: 18px; }
+  .card { margin-top: 12px; padding: 16px; border-radius: 24px; background: var(--card); border: 1px solid var(--hair); }
+  .card h2 { font-size: 13px; font-weight: 400; color: var(--ink-2); margin-bottom: 8px; }
+  .kv { display: grid; gap: 10px; } .kv div { display: grid; grid-template-columns: 92px 1fr; gap: 10px; font-size: 14.5px; } .kv dt { color: var(--ink-2); } .kv dd { margin: 0; }
+  .ml .kv div { grid-template-columns: 1fr; gap: 2px; }   /* Malayalam labels run longer: stack them over their values */
+  #main h1:focus, #main .done-msg:focus { outline: none; }   /* focused by script for screen readers, not operable */
+  .why { padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--ink); } .why li::marker { color: var(--ink-2); }
+  .src { margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 4px 0 2px; } .steps i { height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); } .steps i.on { background: var(--ok); }
+  .steps-l { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 11.5px; color: var(--ink-2); } .steps-l span.on { color: var(--ink); }
+  .acts { position: sticky; bottom: 0; display: grid; gap: 8px; padding: 14px 0 6px; background: linear-gradient(transparent, var(--page) 30%); }
+  .btn { min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--hair-2); background: rgba(255,255,255,.06); color: var(--ink); font-size: 16px; cursor: pointer; }
+  .btn.primary { background: var(--ink); color: #141716; border-color: var(--ink); font-weight: 500; }
+  .btn:active { transform: scale(.98); }
+  .call { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 4px; color: var(--ink); text-decoration: none; border-top: 1px solid var(--hair); }
+  .call:first-of-type { border-top: 0; } .call svg { width: 20px; height: 20px; color: var(--ink-2); flex: none; } .call span { flex: 1; } .call small { display: block; color: var(--ink-2); font-size: 12.5px; }
+
+  /* outcome form */
+  .f { display: grid; gap: 6px; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+  .f input, .f textarea, .f select { width: 100%; min-height: 48px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--hair-2); background: #1a1e1c; color: var(--ink); font-size: 16px; }
+  .f textarea { min-height: 96px; resize: vertical; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg button { min-height: 48px; border-radius: 14px; border: 1px solid var(--hair-2); background: #1a1e1c; font-size: 14px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--card-hi); border-color: var(--ink); }
+  .photo { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px dashed var(--hair-2); font-size: 14px; color: var(--ink); cursor: pointer; }
+  .photo input { position: absolute; width: 1px; height: 1px; opacity: 0; } .photo svg { width: 20px; height: 20px; color: var(--ink-2); }
+  .err { color: var(--critical); font-size: 13px; }
+  .done-msg { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; margin-top: 12px; border-radius: 18px; background: rgba(123,216,143,.08); border: 1px solid rgba(123,216,143,.3); font-size: 14px; }
+  .done-msg svg { width: 18px; height: 18px; color: var(--ok); flex: none; margin-top: 2px; }
+  .ml-note { margin-top: 10px; font-size: 12px; color: var(--ink-2); }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: no-preference) { .view { animation: in .22s cubic-bezier(0.23, 1, 0.32, 1); } @keyframes in { from { opacity: 0; transform: translateY(6px); } } }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="top">
+    <div class="who"><b data-t="team">Rescue Unit 2</b><span data-t="role">Team lead · Fire &amp; Rescue</span></div>
+    <div class="lang" role="group" aria-label="Language / ഭാഷ">
+      <button type="button" data-lang="en" aria-pressed="true" lang="en">EN</button>
+      <button type="button" data-lang="ml" aria-pressed="false" lang="ml">മല</button>
+    </div>
+  </header>
+  <p class="net sim" id="net"><i aria-hidden="true"></i><span data-t="sim">Simulated · Day 0, 12:15 IST · reports reach the DEOC</span></p>
+  <main id="main" tabindex="-1"></main>
+  <p class="sr-only" role="status" aria-live="polite" id="live"></p>
+</div>
+<script>
+/* ---------- shared event state: what each phase hands to the next, and a log the Timeline reads ----------
+   Kept for this visit (sessionStorage). Every page still works without it (private windows, blocked storage). */
+window.RO_STATE = (() => {
+  const K = 'ro.state';
+  const read = () => { try { return JSON.parse(sessionStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const write = s => { try { sessionStorage.setItem(K, JSON.stringify(s)); } catch (e) {} };
+  return {
+    get: k => read()[k],
+    set: (k, v) => { const s = read(); s[k] = v; write(s); },
+    // log entry: { id, day, t, phase, kind, title, detail, actor, who, src, verify, link }
+    log: () => read().log || [],
+    add: e => { const s = read(), l = s.log || []; if (!l.some(x => x.id === e.id)) l.push(e); s.log = l; write(s);
+      // people's decisions also go to the backend's decision log (the Audit trail), when it is there
+      if (e.who === 'human') window.RO_API?.decide({ action: 'decide', item: e.title, by: e.actor, phase: e.phase, detail: `Day ${e.day} ${e.t} · ${e.detail || ''}`.trim() }); },
+    reset: () => write({})
+  };
+})();
+
+/* ---------- review dialog: one panel for drafts and handovers, on every page ----------
+   RO_REVIEW.open({ title, sub, ai, fields: [[label, value]], lists: [{ h, tone: 'ok'|'warn'|'ink', items: [[text, small]] }],
+                    edit: [{ id, label, type: 'text'|'textarea'|'select'|'check', value, options: [[value, label]] }],
+                    note, approve, cancel, phase, anyone, onApprove(values), onCancel })
+   anyone: personal settings that need no approval.
+   Approval follows the role: only the Incident Commander approves (the coordinator can in Recover); others send it to the IC. */
+window.RO_REVIEW = (() => {
+  const ROLE = (() => { try { return localStorage.getItem('ro.role') || 'ic'; } catch (e) { return 'ic'; } })();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const IC = {
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z" fill="currentColor"/></svg>',
+    ink: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>',
+    ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 13.8 10 20.5 12l-6.7 2-1.8 6.5-1.8-6.5L3.5 12l6.7-2z"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+  };
+  const toast = msg => { const t = document.getElementById('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(t._rv); t._rv = setTimeout(() => t.classList.remove('show'), 3200); };
+  let el, scrim, last, cfg;
+  const close = (why) => {
+    if (!el || el.hidden) return;
+    el.hidden = true; scrim.hidden = true;
+    if (why === 'cancel') cfg.onCancel?.();
+    last?.focus?.({ preventScroll: true });
+  };
+  const open = c => {
+    cfg = c; last = document.activeElement;
+    if (!el) {
+      document.body.insertAdjacentHTML('beforeend', '<div class="rv-scrim" id="rv-scrim" hidden></div><div class="rv" id="rv" role="dialog" aria-modal="true" aria-labelledby="rv-h" hidden></div>');
+      el = document.getElementById('rv'); scrim = document.getElementById('rv-scrim');
+      scrim.addEventListener('click', () => close('cancel'));
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close('cancel'); }
+        if (e.key === 'Tab') {
+          const f = [...el.querySelectorAll('button:not([disabled]), [href], input, textarea, select')], a = f[0], z = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+        }
+      });
+    }
+    const can = c.anyone || ROLE === 'ic' || (ROLE === 'coord' && c.phase === 'recover');
+    const fid = f => 'rv-e-' + f.id;
+    const input = f => f.type === 'textarea' ? `<textarea id="${fid(f)}" rows="3" required>${esc(f.value ?? '')}</textarea>`
+      : f.type === 'select' ? `<select id="${fid(f)}">${f.options.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(f.value) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`
+      : f.type === 'check' ? `<input type="checkbox" id="${fid(f)}"${f.value ? ' checked' : ''}>`
+      : `<input id="${fid(f)}" value="${esc(f.value ?? '')}" autocomplete="off" required>`;
+    const approve = can ? c.approve : (ROLE === 'analyst' ? 'Recommend to IC' : 'Send to IC');
+    el.innerHTML = `<header class="rv-top"><div><h2 id="rv-h">${esc(c.title)}</h2>${c.sub ? `<p>${esc(c.sub)}</p>` : ''}</div>
+        <button type="button" class="rv-x" data-rv="cancel" aria-label="Close without approving">${IC.x}</button></header>
+      <div class="rv-body">
+        ${c.ai ? `<p class="rv-ai">${IC.ai}<span>${c.ai}</span></p>` : ''}
+        ${c.fields ? `<dl class="rv-f">${c.fields.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
+        ${c.edit ? `<div class="rv-e">${c.edit.map(f => f.type === 'check'
+          ? `<label class="rv-c" for="${fid(f)}">${input(f)}<span>${esc(f.label)}${f.hint ? `<small>${esc(f.hint)}</small>` : ''}</span></label>`
+          : `<label class="rv-in" for="${fid(f)}"><span>${esc(f.label)}</span>${input(f)}</label>`).join('')}<p class="rv-err" role="alert" hidden></p></div>` : ''}
+        ${(c.lists || []).map(l => `<section class="rv-l rv-${l.tone || 'ink'}"><h3>${IC[l.tone || 'ink']}${esc(l.h)}</h3>
+          <ul>${l.items.length ? l.items.map(([a, b]) => `<li><span>${a}${b ? `<small>${b}</small>` : ''}</span></li>`).join('') : '<li class="rv-none">None</li>'}</ul></section>`).join('')}
+      </div>
+      <footer class="rv-foot">${c.note ? `<p class="rv-note">${c.note}</p>` : ''}${can ? '' : '<p class="rv-note">Approval sits with Ananya Menon, Incident Commander.</p>'}
+        <div class="rv-acts"><button type="button" class="btn" data-rv="cancel">${esc(c.cancel || 'Not now')}</button><button type="button" class="btn primary" data-rv="ok">${esc(approve)}</button></div></footer>`;
+    el.querySelectorAll('[data-rv]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.rv === 'cancel') return close('cancel');
+      const vals = {}; let bad = null;
+      (c.edit || []).forEach(f => { const x = document.getElementById(fid(f)); vals[f.id] = f.type === 'check' ? x.checked : x.value.trim();
+        const empty = f.type !== 'check' && f.type !== 'select' && !vals[f.id]; x.setAttribute('aria-invalid', empty); if (empty && !bad) bad = [x, f.label]; });
+      if (bad) { const er = el.querySelector('.rv-err'); er.hidden = false; er.textContent = `${bad[1]} can't be empty.`; bad[0].focus(); return; }
+      close('ok');
+      if (can) c.onApprove?.(vals); else { c.onRecommend?.(vals); toast(`Sent to Ananya Menon, Incident Commander, for approval`); }
+    }));
+    el.hidden = false; scrim.hidden = false;
+    if (!reduce) { el.classList.add('enter'); scrim.classList.add('enter'); requestAnimationFrame(() => requestAnimationFrame(() => { el.classList.remove('enter'); scrim.classList.remove('enter'); })); }
+    (c.edit ? el.querySelector('.rv-e input, .rv-e select, .rv-e textarea') : el.querySelector('[data-rv="ok"]')).focus();
+  };
+  return { open, close, can: phase => ROLE === 'ic' || (ROLE === 'coord' && phase === 'recover'), toast };
+})();
+
+/* ---------- handover note: "From Prepare · …" at the top of a phase's decision panel ---------- */
+window.RO_HANDNOTE = (ref, { from, when, by, done, open }) => {   // inserted right after ref (e.g. the panel header)
+  if (!ref) return;
+  const id = 'ho-' + from.toLowerCase();
+  ref.insertAdjacentHTML('afterend', `<div class="ro-ho" data-sk-t="Handover from ${from}" data-sk-m="${when}" data-sk-k="Handover">
+    <button type="button" class="ro-ho-t" aria-expanded="false" aria-controls="${id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg>
+      <span><b>Handed over from ${from}</b><small>${when} · ${by} · ${done.length} done · ${open.length} carried over</small></span>
+      <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="ro-ho-b" id="${id}" hidden>
+      ${open.length ? `<p class="k">Carried over</p><ul>${open.map(([a, b]) => `<li class="warn"><span>${a}${b ? `<small>${b}</small>` : ''}</span></li>`).join('')}</ul>` : ''}
+      ${done.length ? `<p class="k">Done in ${from}</p><ul>${done.map(([a, b]) => `<li class="ok"><span>${a}${b ? `<small>${b}</small>` : ''}</span></li>`).join('')}</ul>` : ''}
+    </div></div>`);
+  const t = document.querySelector(`[aria-controls="${id}"]`);
+  t.addEventListener('click', () => { const o = t.getAttribute('aria-expanded') !== 'true'; t.setAttribute('aria-expanded', o); document.getElementById(id).hidden = !o; });
+};
+
+/* ---------- actions behind buttons: data-act="key" → review (or do it directly) → state line + event log ----------
+   RO_ACT(root, { key: cfg | (button) => cfg }) — cfg is an RO_REVIEW config plus:
+     direct (no dialog: reminders and checks) · keep (leave the button: edits) · done: text | (values) => text
+     log: { day, t, phase, kind, title, detail, actor, who, src, verify } · after(values, button) */
+window.RO_ACT = (root, map) => {
+  const OKI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>';
+  let n = 0;
+  root.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b || !map[b.dataset.act]) return;
+    e.preventDefault();
+    const a = typeof map[b.dataset.act] === 'function' ? map[b.dataset.act](b) : map[b.dataset.act];
+    const finish = vals => {
+      const msg = typeof a.done === 'function' ? a.done(vals) : a.done;
+      if (!a.keep) {
+        const chip = b.closest('.draft');
+        const line = chip ? `<span class="chip ok">${a.chip || 'Sent'}</span>` : `<p class="ro-done" role="status">${OKI}<span>${msg}</span></p>`;
+        b.insertAdjacentHTML('afterend', line); const next = b.nextElementSibling; b.remove();
+        next?.setAttribute('tabindex', '-1'); next?.focus?.({ preventScroll: true });
+      }
+      if (a.log) window.RO_STATE?.add(Object.assign({ id: 'lv-act-' + b.dataset.act + '-' + (b.dataset.k || n++) + '-' + Date.now().toString(36), detail: '', who: 'human', actor: 'Ananya Menon', verify: 'verified', src: 'Approval record' }, a.log));
+      a.after?.(vals, b);
+      RO_REVIEW.toast(a.toast || msg);
+    };
+    if (a.direct) return finish({});
+    RO_REVIEW.open(Object.assign({}, a, { onApprove: finish }));
+  });
+};
+
+/* ---------- maps: offline fallback and searchable map-only places ---------- */
+// If the satellite tiles can't load (no internet, blocked), switch the map to a plain dark ground with a note;
+// zones, routes and pins are drawn by the app and keep working.
+window.RO_TILEGUARD = (map, layer) => {
+  let ok = 0, bad = 0, shown = false;
+  layer.on('tileload', () => { ok++; });
+  layer.on('tileerror', () => {
+    bad++;
+    if (shown || ok > 0 || bad < 4) return;
+    shown = true;
+    const c = map.getContainer(); c.classList.add('ro-offline');
+    c.insertAdjacentHTML('beforeend', '<p class="ro-offline-note" role="status">Map imagery can’t load (offline). Zones, routes and teams still show.</p>');
+  });
+  return layer;
+};
+// Places that are only on the map (camps, roads, the hospital, outages) join the top-bar search: picking one flies there.
+window.RO_MAPPLACES = (map, items) => {
+  window.RO_MAP = { items: items.map(([t, m, ll, z]) => ({ t, m, k: 'Map', go: () => {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    reduce ? map.setView(ll, z || 13.5) : map.flyTo(ll, z || 13.5, { duration: .8 });
+    map.getContainer().focus?.({ preventScroll: true });
+  } })) };
+};
+
+/* ---------- ResilienceOps API client: the agents behind the AI text on each page ----------
+   Finds the backend (same origin on Cloud Run; localhost:8080 while developing on the :4317 preview; or ?api=<url>),
+   loads each agent's latest result fast, and lets people regenerate it on Gemini. If the backend can't be reached,
+   nothing changes: the page keeps its built-in (simulated) text. */
+window.RO_API = (() => {
+  // dev only: on a deployed (non-local) page we ignore ?api= and any saved override, so a crafted link
+  // can't repoint the console's backend at another server. In production the app always uses its own origin.
+  const isDev = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+  const q = isDev ? new URLSearchParams(location.search).get('api') : null;
+  const saved = isDev ? (() => { try { return localStorage.getItem('ro.api'); } catch (e) { return null; } })() : null;
+  if (isDev && q) { try { localStorage.setItem('ro.api', q); } catch (e) {} }
+  const base = (q || saved || (location.port === '4317' || location.protocol === 'file:' ? 'http://localhost:8080' : '')).replace(/\/$/, '');
+  const timed = (url, opt = {}, ms = 2500) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+    return fetch(base + url, { ...opt, signal: c.signal }).finally(() => clearTimeout(t)); };
+  let health = null;
+  const ready = timed('/api/health').then(r => r.ok ? r.json() : null).then(h => (health = h)).catch(() => null);
+  return {
+    base, ready, health: () => health,
+    agent: async (name, ctx = {}) => { if (!(await ready)) return null;
+      try { const r = await timed(`/api/agents/${name}${ctx.staged ? '?staged=1' : ''}`); return r.ok ? r.json() : null; } catch (e) { return null; } },
+    run: async (name, ctx = {}) => { if (!(await ready)) return null;
+      try { const r = await timed(`/api/agents/${name}/run`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ context: ctx }) }, 120000); return r.ok ? r.json() : null; } catch (e) { return null; } },
+    // human decisions go to the backend's log (the Audit trail); fire and forget
+    decide: d => { ready.then(h => h && fetch(base + '/api/decisions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).catch(() => {})); }
+  };
+})();
+
+/* RO_AI.bind(agent, { ctx, host, apply }) — load the agent's result, apply(text, facts, result) to the page, and show
+   a provenance line in host: "✦ Gemini 2.5 Flash · 3 min ago · Regenerate" or "Built-in text · Gemini not connected". */
+window.RO_AI = (() => {
+  const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const ago = iso => { const s = Math.max(0, (Date.now() - new Date(iso)) / 1000); return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} d ago`; };
+  const SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 13.8 10 20.5 12l-6.7 2-1.8 6.5-1.8-6.5L3.5 12l6.7-2z"/></svg>';
+  const model = m => (m || '').replace(/^gemini-/, 'Gemini ').replace(/-flash/, ' Flash').replace(/-pro/, ' Pro');
+  const chip = (el, res, state) => {
+    if (!el) return;
+    const h = RO_API.health(), live = h && h.gemini_configured;
+    const what = state === 'busy' ? `${SPARK}<span>Asking Gemini… this can take up to a minute</span>`
+      : res.source === 'gemini' ? `${SPARK}<span>${esc(model(res.model))} · ${ago(res.generated_at)}</span>`
+      : `<span>Built-in text${live ? (res.error ? ' · Gemini didn’t answer, try again' : ' · not generated yet') : ' · Gemini not connected'}</span>`;
+    el.innerHTML = `<span class="ro-src-t" role="status">${what}</span>${state === 'busy' ? '' : `<button type="button" class="ro-src-b"${live ? '' : ' disabled title="Add GOOGLE_API_KEY to backend/.env to use Gemini"'} aria-label="Regenerate with Gemini: ${esc(res.display)}">Regenerate</button>`}`;
+    el.dataset.src = state === 'busy' ? 'busy' : res.source;
+  };
+  const bind = async (name, { ctx = {}, host, apply }) => {
+    const res = await RO_API.agent(name, ctx);
+    if (!res) return null;            // no backend: keep the page's own text
+    const el = typeof host === 'function' ? host() : host;
+    if (el && !el.classList.contains('ro-src')) { el.classList.add('ro-src'); }
+    // only Gemini's own words replace the page's text; otherwise the page keeps its built-in wording
+    if (res.source === 'gemini') { try { apply(res.text, res.facts, res); } catch (e) { console.warn('RO_AI', name, e); } }
+    chip(el, res);
+    el?.addEventListener('click', async e => {
+      if (!e.target.closest('.ro-src-b')) return;
+      chip(el, res, 'busy');
+      const nx = await RO_API.run(name, ctx);
+      if (nx) { if (nx.source === 'gemini') { try { apply(nx.text, nx.facts, nx); } catch (err) { console.warn('RO_AI', name, err); } } Object.assign(res, nx); }
+      chip(el, res); el.querySelector('.ro-src-b')?.focus();
+    });
+    return res;
+  };
+  return { bind, esc };
+})();
+
+/* ---------- field app ---------- */
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  // UI words. Malayalam drafted for the prototype; the DEOC language officer checks it before field use.
+  const T = {
+    en: { team: 'Rescue Unit 2', role: 'Team lead · Fire & Rescue', sim: 'Simulated · Day 0, 12:15 IST · reports reach the DEOC',
+      title: 'My tasks', lead: 'From the DEOC, newest first. Accept a task before you move.', back: 'Back to my tasks',
+      new: 'New', acc: 'Accepted', move: 'On my way', site: 'On site', done: 'Done', what: 'What', where: 'Where', route: 'Route', due: 'Due', proof: 'Done when',
+      why: 'Why this task', approved: 'Approved by Ananya Menon, Incident Commander', calls: 'Call', accept: 'Accept task', cant: 'I can’t do this', go: 'I’m on my way',
+      arrived: 'I’ve arrived', report: 'Report the outcome', outcome: 'Outcome', o1: 'Done', o2: 'Partly', o3: 'Couldn’t', people: 'People moved to safety', road: 'Road at the site',
+      r1: 'Passable', r2: 'One lane', r3: 'Blocked', notes: 'Notes for the DEOC', photo: 'Add a photo', photoOn: 'Photo added', send: 'Send report',
+      sent: 'Report sent to the DEOC. It is on the event timeline; the Incident Commander sees it now.', needN: 'Enter how many people were moved (0 if none).',
+      cantQ: 'Tell the DEOC why', cantSend: 'Send to the DEOC', cantSent: 'The DEOC has been told. Stay where you are until they reassign the task.', ml: '' },
+    ml: { team: 'റെസ്ക്യൂ യൂണിറ്റ് 2', role: 'ടീം ലീഡ് · ഫയർ & റെസ്ക്യൂ', sim: 'സിമുലേഷൻ · ദിവസം 0, 12:15 · റിപ്പോർട്ടുകൾ DEOC-ൽ എത്തും',
+      title: 'എന്റെ ജോലികൾ', lead: 'DEOC-ൽ നിന്ന്, പുതിയത് ആദ്യം. പുറപ്പെടും മുമ്പ് ജോലി സ്വീകരിക്കുക.', back: 'ജോലികളിലേക്ക് തിരികെ',
+      new: 'പുതിയത്', acc: 'സ്വീകരിച്ചു', move: 'യാത്രയിലാണ്', site: 'സ്ഥലത്തെത്തി', done: 'പൂർത്തിയായി', what: 'എന്ത്', where: 'എവിടെ', route: 'വഴി', due: 'സമയപരിധി', proof: 'പൂർത്തിയാകുന്നത്',
+      why: 'എന്തുകൊണ്ട് ഈ ജോലി', approved: 'അംഗീകരിച്ചത്: അനന്യ മേനോൻ, ഇൻസിഡന്റ് കമാൻഡർ', calls: 'വിളിക്കുക', accept: 'ജോലി സ്വീകരിക്കുക', cant: 'എനിക്ക് ഇത് ചെയ്യാൻ കഴിയില്ല', go: 'ഞാൻ യാത്രയിലാണ്',
+      arrived: 'ഞാൻ എത്തി', report: 'ഫലം റിപ്പോർട്ട് ചെയ്യുക', outcome: 'ഫലം', o1: 'പൂർത്തിയായി', o2: 'ഭാഗികമായി', o3: 'കഴിഞ്ഞില്ല', people: 'സുരക്ഷിതമാക്കിയ ആളുകൾ', road: 'സ്ഥലത്തെ റോഡ്',
+      r1: 'പോകാം', r2: 'ഒരു വരി', r3: 'അടഞ്ഞു', notes: 'DEOC-നുള്ള കുറിപ്പുകൾ', photo: 'ഫോട്ടോ ചേർക്കുക', photoOn: 'ഫോട്ടോ ചേർത്തു', send: 'റിപ്പോർട്ട് അയയ്ക്കുക',
+      sent: 'റിപ്പോർട്ട് DEOC-ലേക്ക് അയച്ചു. ഇത് ടൈംലൈനിലുണ്ട്; ഇൻസിഡന്റ് കമാൻഡർക്ക് ഇപ്പോൾ കാണാം.', needN: 'എത്ര പേരെ മാറ്റി എന്ന് നൽകുക (ഇല്ലെങ്കിൽ 0).',
+      cantQ: 'കാരണം DEOC-നെ അറിയിക്കുക', cantSend: 'DEOC-ലേക്ക് അയയ്ക്കുക', cantSent: 'DEOC-നെ അറിയിച്ചു. ജോലി മാറ്റി നൽകുന്നതുവരെ ഇവിടെ തുടരുക.',
+      ml: 'മലയാളം: പ്രോട്ടോടൈപ്പിനായി തയ്യാറാക്കിയത്; DEOC ഭാഷാ ഓഫീസർ പരിശോധിക്കും.' }
+  };
+  const TASKS = [
+    { id: 'f1', crit: true, st: 'new', due: '12:41',
+      en: { t: 'Rescue · Chooralmala ward 11', what: 'Reach the households cut off beyond the landslide at km 7 and move people to Meppadi camp.', where: 'km 7, Meppadi–Chooralmala road', route: 'Route C (forest track, high-clearance only). Route A is blocked at km 7.', proof: 'Headcount moved, road state, a photo',
+            why: ['About 10–18 households may be cut off (ward officer, 12:03).', 'Route A is blocked; Route C was reported passable but is not verified.', 'Excavator 3 (PWD) follows you to clear the debris.'] },
+      ml: { t: 'രക്ഷാപ്രവർത്തനം · ചൂരൽമല വാർഡ് 11', what: 'കിലോമീറ്റർ 7-ലെ മണ്ണിടിച്ചിലിനപ്പുറം ഒറ്റപ്പെട്ട വീടുകളിലെത്തി ആളുകളെ മേപ്പാടി ക്യാമ്പിലേക്ക് മാറ്റുക.', where: 'കിലോമീറ്റർ 7, മേപ്പാടി–ചൂരൽമല റോഡ്', route: 'റൂട്ട് C (വനപാത, ഉയർന്ന വാഹനങ്ങൾ മാത്രം). റൂട്ട് A കിലോമീറ്റർ 7-ൽ അടഞ്ഞിരിക്കുന്നു.', proof: 'മാറ്റിയ ആളുകളുടെ എണ്ണം, റോഡിന്റെ അവസ്ഥ, ഒരു ഫോട്ടോ',
+            why: ['ഏകദേശം 10–18 വീടുകൾ ഒറ്റപ്പെട്ടിരിക്കാം (വാർഡ് ഓഫീസർ, 12:03).', 'റൂട്ട് A അടഞ്ഞു; റൂട്ട് C പോകാമെന്ന് റിപ്പോർട്ട്, പക്ഷേ സ്ഥിരീകരിച്ചിട്ടില്ല.', 'അവശിഷ്ടങ്ങൾ നീക്കാൻ എക്സ്കവേറ്റർ 3 (PWD) പിന്നാലെ വരും.'] } },
+    { id: 'f2', st: 'new', due: '12:50',
+      en: { t: 'Report the road at km 7 on arrival', what: 'Tell the DEOC whether the road can take an ambulance.', where: 'km 7', route: 'With task 1', proof: 'Road state: passable, one lane or blocked', why: ['WIMS hospital needs a road for the ambulance.'] },
+      ml: { t: 'എത്തുമ്പോൾ കിലോമീറ്റർ 7-ലെ റോഡ് റിപ്പോർട്ട് ചെയ്യുക', what: 'ആംബുലൻസിന് പോകാനാകുമോ എന്ന് DEOC-നെ അറിയിക്കുക.', where: 'കിലോമീറ്റർ 7', route: 'ജോലി 1-നൊപ്പം', proof: 'റോഡിന്റെ അവസ്ഥ', why: ['ആംബുലൻസിന് WIMS ആശുപത്രിയിലേക്ക് വഴി വേണം.'] } },
+    { id: 'f0', st: 'done', due: '10:00',
+      en: { t: 'Standby at the Meppadi staging point', what: 'Check in at Meppadi with the landslide kit.', where: 'Meppadi staging point', route: '—', proof: 'Check-in', why: ['Prepare readiness task, approved 07:05.'] },
+      ml: { t: 'മേപ്പാടി സ്റ്റേജിംഗ് പോയിന്റിൽ തയ്യാറായി നിൽക്കുക', what: 'മണ്ണിടിച്ചിൽ കിറ്റുമായി മേപ്പാടിയിൽ ചെക്ക്-ഇൻ ചെയ്യുക.', where: 'മേപ്പാടി സ്റ്റേജിംഗ് പോയിന്റ്', route: '—', proof: 'ചെക്ക്-ഇൻ', why: ['തയ്യാറെടുപ്പ് ജോലി, 07:05-ന് അംഗീകരിച്ചു.'] } }
+  ];
+  const ORDER = ['new', 'acc', 'move', 'site', 'done'];
+  const KEY = 'ro.field';
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } })();
+  TASKS.forEach(t => { if (saved[t.id]) t.st = saved[t.id]; });
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(TASKS.map(t => [t.id, t.st])))); } catch (e) {} };
+  let lang = (() => { try { return localStorage.getItem('ro.lang') === 'ml' ? 'ml' : 'en'; } catch (e) { return 'en'; } })();
+  const w = k => T[lang][k];
+  const ICON = { new: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>', done: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>' };
+  const stChip = s => `<span class="st ${s}">${ICON[s] || ''}${esc(w(s))}</span>`;
+  const AT = { acc: '12:15', move: '12:16', site: '12:41', done: '15:30', cant: '12:16' };   // scenario clock for each step
+  const log = (title, detail, step) => window.RO_STATE?.add({ id: 'lv-field-' + Date.now().toString(36), day: 0, t: AT[step] || '12:15', phase: 'respond', kind: 'dispatch', title, detail, actor: 'Rescue Unit 2', who: 'agency', src: 'Field app · team lead', verify: 'reported' });
+  const announce = m => { $('#live').textContent = m; };
+
+  const inbox = () => {
+    $('#main').innerHTML = `<div class="view"><h1>${esc(w('title'))}</h1><p class="lead">${esc(w('lead'))}</p>
+      <ul class="tlist">${TASKS.map(t => `<li><button type="button" class="task${t.crit && t.st !== 'done' ? ' crit' : ''}" data-id="${t.id}">
+        <span class="row"><b>${esc(t[lang].t)}</b>${stChip(t.st)}</span><span class="m">${esc(w('due'))} ${t.due} · ${esc(t[lang].where)}</span></button></li>`).join('')}</ul>
+      ${w('ml') ? `<p class="ml-note">${esc(w('ml'))}</p>` : ''}</div>`;
+  };
+  const detail = (id, focusSel) => {
+    const t = TASKS.find(x => x.id === id), d = t[lang], i = ORDER.indexOf(t.st);
+    const next = { new: ['accept', 'acc'], acc: ['go', 'move'], move: ['arrived', 'site'] }[t.st];
+    $('#main').innerHTML = `<div class="view"><button type="button" class="back" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>${esc(w('back'))}</button>
+      <h1>${esc(d.t)}</h1><p class="lead">${stChip(t.st)} · ${esc(w('due'))} ${t.due}</p>
+      <div class="steps" aria-hidden="true">${['acc', 'move', 'site', 'done'].map(s => `<i class="${ORDER.indexOf(s) <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="steps-l" aria-hidden="true">${['acc', 'move', 'site', 'done'].map(s => `<span class="${ORDER.indexOf(s) <= i ? 'on' : ''}">${esc(w(s))}</span>`).join('')}</div>
+      <section class="card"><dl class="kv"><div><dt>${esc(w('what'))}</dt><dd>${esc(d.what)}</dd></div><div><dt>${esc(w('where'))}</dt><dd>${esc(d.where)}</dd></div>
+        <div><dt>${esc(w('route'))}</dt><dd>${esc(d.route)}</dd></div><div><dt>${esc(w('proof'))}</dt><dd>${esc(d.proof)}</dd></div></dl></section>
+      <section class="card"><h2>${esc(w('why'))}</h2><ul class="why" id="why">${d.why.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="src">${esc(w('approved'))}</p></section>
+      <section class="card"><h2>${esc(w('calls'))}</h2>
+        <a class="call" href="tel:1077"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>DEOC Wayanad<small>Control room · 1077</small></span></a>
+        <a class="call" href="tel:+919400017302"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Excavator 3 · Rafeeq M.<small>PWD · KL 12 AB 7302</small></span></a></section>
+      <div id="extra"></div>
+      ${t.st === 'done' ? '' : `<div class="acts">${next ? `<button type="button" class="btn primary" data-step="${next[1]}">${esc(w(next[0]))}</button>` : `<button type="button" class="btn primary" data-report>${esc(w('report'))}</button>`}
+        ${t.st === 'new' ? `<button type="button" class="btn" data-cant>${esc(w('cant'))}</button>` : ''}</div>`}
+      ${w('ml') ? `<p class="ml-note">${esc(w('ml'))}</p>` : ''}</div>`;
+    $('#main').dataset.id = id;
+    (focusSel ? $(focusSel) : $('#main h1'))?.setAttribute('tabindex', '-1'); (focusSel ? $(focusSel) : $('#main h1'))?.focus();
+    // the dispatch agent's reasons, when Gemini has written them (rescue task only)
+    if (id === 'f1' && lang === 'en') window.RO_API?.agent('dispatch').then(r => { if (r && r.source === 'gemini' && $('#why') && $('#main').dataset.id === 'f1') $('#why').innerHTML = r.text.why.map(x => `<li>${esc(x)}</li>`).join(''); });
+  };
+  const reportForm = t => {
+    $('#extra').innerHTML = `<form class="card" id="rep" novalidate><h2>${esc(w('report'))}</h2>
+      <div class="f"><span id="o-l">${esc(w('outcome'))}</span><div class="seg" role="group" aria-labelledby="o-l">${['o1', 'o2', 'o3'].map((k, n) => `<button type="button" data-o="${k}" aria-pressed="${!n}">${esc(w(k))}</button>`).join('')}</div></div>
+      <label class="f">${esc(w('people'))}<input id="r-n" inputmode="numeric" pattern="[0-9]*" autocomplete="off"></label>
+      <div class="f"><span id="rd-l">${esc(w('road'))}</span><div class="seg" role="group" aria-labelledby="rd-l">${['r1', 'r2', 'r3'].map((k, n) => `<button type="button" data-r="${k}" aria-pressed="${n === 1}">${esc(w(k))}</button>`).join('')}</div></div>
+      <label class="f">${esc(w('notes'))}<textarea id="r-notes"></textarea></label>
+      <label class="photo f"><input type="file" accept="image/*" capture="environment" id="r-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="r-ph">${esc(w('photo'))}</span></label>
+      <p class="err" id="r-err" role="alert" hidden></p>
+      <div class="acts"><button type="submit" class="btn primary">${esc(w('send'))}</button></div></form>`;
+    const f = $('#rep');
+    f.addEventListener('click', e => { const b = e.target.closest('[data-o],[data-r]'); if (!b) return; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    $('#r-photo').addEventListener('change', e => { $('#r-ph').textContent = e.target.files.length ? w('photoOn') : w('photo'); });
+    f.addEventListener('submit', e => { e.preventDefault();
+      const n = $('#r-n').value.trim();
+      if (!/^\d+$/.test(n)) { const er = $('#r-err'); er.hidden = false; er.textContent = w('needN'); $('#r-n').setAttribute('aria-invalid', 'true'); $('#r-n').focus(); return; }
+      const o = T.en[f.querySelector('[data-o][aria-pressed="true"]').dataset.o], road = T.en[f.querySelector('[data-r][aria-pressed="true"]').dataset.r];
+      t.st = 'done'; save();
+      log(`${t.en.t}: ${o.toLowerCase()} · ${n} people moved`, `Road at the site: ${road.toLowerCase()}. ${$('#r-notes').value.trim()}`.trim(), 'done');
+      detail(t.id); $('#main .view').insertAdjacentHTML('beforeend', `<p class="done-msg" role="status">${ICON.done}<span>${esc(w('sent'))}</span></p>`); announce(w('sent'));
+    });
+    $('#r-n').focus();
+  };
+  document.addEventListener('click', e => {
+    const tk = e.target.closest('.task'); if (tk) return detail(tk.dataset.id);
+    if (e.target.closest('[data-back]')) { const id = $('#main').dataset.id; inbox(); document.querySelector(`.task[data-id="${id}"]`)?.focus(); return; }
+    const st = e.target.closest('[data-step]');
+    if (st) { const t = TASKS.find(x => x.id === $('#main').dataset.id); t.st = st.dataset.step; save();
+      log(`${t.en.t}: ${T.en[t.st].toLowerCase()}`, '', t.st); detail(t.id, '[data-step], [data-report]'); announce(w(t.st)); return; }
+    if (e.target.closest('[data-report]')) return reportForm(TASKS.find(x => x.id === $('#main').dataset.id));
+    if (e.target.closest('[data-cant]')) {
+      $('#extra').innerHTML = `<form class="card" id="cant"><label class="f">${esc(w('cantQ'))}<textarea id="c-why" required></textarea></label><div class="acts"><button type="submit" class="btn primary">${esc(w('cantSend'))}</button></div></form>`;
+      $('#c-why').focus();
+      $('#cant').addEventListener('submit', ev => { ev.preventDefault(); const t = TASKS.find(x => x.id === $('#main').dataset.id), why = $('#c-why').value.trim();
+        if (!why) { $('#c-why').setAttribute('aria-invalid', 'true'); $('#c-why').focus(); return; }
+        log(`${t.en.t}: team can't do it`, why, 'cant'); $('#extra').innerHTML = `<p class="done-msg" role="status">${ICON.done}<span>${esc(w('cantSent'))}</span></p>`; announce(w('cantSent')); });
+      return;
+    }
+    const lb = e.target.closest('[data-lang]');
+    if (lb) { lang = lb.dataset.lang; try { localStorage.setItem('ro.lang', lang); } catch (er) {} applyLang(); const id = $('#main').dataset.id; $('#main h1') && ($('#main .back') ? detail(id) : inbox()); lb.focus(); }
+  });
+  const applyLang = () => {
+    document.documentElement.lang = lang; document.body.classList.toggle('ml', lang === 'ml');
+    document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = w(el.dataset.t); });
+    document.title = (lang === 'ml' ? 'ഫീൽഡ് ജോലികൾ' : 'Field tasks') + ' · ResilienceOps';
+  };
+  applyLang(); inbox();
+})();
+</script>
+</body>
+</html>
